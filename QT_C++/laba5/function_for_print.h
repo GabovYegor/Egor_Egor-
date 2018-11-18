@@ -1,0 +1,4 @@
+#ifndef FUNCTION_FOR_PRINT_H
+#define FUNCTION_FOR_PRINT_H
+
+#endif // FUNCTION_FOR_PRINT_H
