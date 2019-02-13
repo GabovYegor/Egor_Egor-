@@ -95,22 +95,24 @@ bool checkRightMatrix(std::vector <class MatrixElement> matrix){
     return true;
 }
 
-void algorithmX(std::vector <class MatrixElement> matrix,
-    std::vector <std::vector <class MatrixElement>>& solutions, std::vector <class MatrixElement> prevSolution){
-    std::vector <class MatrixElement> currentSolution;
+bool inFirst = true;
+
+void algorithmX(std::vector <class MatrixElement>& matrix,
+    std::vector <std::vector <class MatrixElement>>& solutions, std::vector <class MatrixElement> currentSolution){
     std::vector <class MatrixElement> afterDelete;
+//    std::cout << "INFUNCTION" << std::endl;
+    size_t minSize = 999;
     for(size_t iteratorElement = 0; iteratorElement < matrix.size(); ++iteratorElement){
         for(size_t iteratorPoint = 0; iteratorPoint < matrix[iteratorElement].points.size(); ++iteratorPoint){
             for(size_t i = 0; i < matrix.size(); ++i)
                 matrix[i].deleted = false;
             for(size_t i = 0; i < afterDelete.size(); ++i)
-                afterDelete.pop_back();
-            for(size_t i = 0; i < currentSolution.size(); ++i)
-                currentSolution.pop_back();
-           if(matrix[iteratorElement].points[iteratorPoint] == matrix[0].points[0]){
-               if(matrix[iteratorElement].square.sideSize <= (matrix[0].mainSquareSide - 3) / 4)
-                   return;
-                currentSolution.push_back(matrix[iteratorElement]);
+                            afterDelete.pop_back();
+            if(matrix[iteratorElement].points[iteratorPoint] == matrix[0].points[0]){
+                if(matrix[iteratorElement].square.sideSize < matrix[0].mainSquareSide / 2 && inFirst || matrix[iteratorElement].square.sideSize == 1){
+                    inFirst = false;
+                    return;
+                }
                 for(size_t solutionPoint = 0; solutionPoint < matrix[iteratorElement].points.size(); ++solutionPoint){
                     for(size_t i = 0; i < matrix.size(); ++i){
                         for(size_t j = 0; j < matrix[i].points.size(); ++j){
@@ -123,17 +125,43 @@ void algorithmX(std::vector <class MatrixElement> matrix,
                     if(!matrix[i].deleted)
                         afterDelete.push_back(matrix[i]);
                 }
+//                std::cout << "INSERT ELEMENT: " << matrix[iteratorElement].square.x << " "
+//                          << matrix[iteratorElement].square.y << " "
+//                          << matrix[iteratorElement].square.sideSize << std::endl;
+//                for(size_t i = 0; i < afterDelete.size(); ++i){
+//                    std::cout << afterDelete[i].square.x << " "
+//                              << afterDelete[i].square.y << " "
+//                              << afterDelete[i].square.sideSize << std::endl;
+//                }
                 if(checkRightMatrix(afterDelete)){
-                    for(size_t i = 0; i < afterDelete.size(); ++i)
-                        currentSolution.push_back(afterDelete[i]);
-                    for(size_t i = 0; i < prevSolution.size(); ++i)
-                        currentSolution.push_back(prevSolution[i]);
-                    solutions.push_back(currentSolution);
+                    if(minSize < afterDelete.size())
+                        continue;
+                    if(afterDelete.size() < minSize)
+                        minSize = afterDelete.size();
+                    std::vector <class MatrixElement> thisSolution;
+//                    std::cout << "RIGHT!!!!!!!!!!!!!!!" << std::endl;
+//                    std::cout << matrix[iteratorElement].square.x << " "
+//                              << matrix[iteratorElement].square.y << " "
+//                              << matrix[iteratorElement].square.sideSize << std::endl;
+                    thisSolution.push_back(matrix[iteratorElement]);
+                    for(size_t i = 0; i < currentSolution.size(); ++i){
+//                        std::cout << currentSolution[i].square.x << " "
+//                                  << currentSolution[i].square.y << " "
+//                                  << currentSolution[i].square.sideSize << std::endl;
+                        thisSolution.push_back(currentSolution[i]);
+                    }
+                    for(size_t i = 0; i < afterDelete.size(); ++i){
+//                        std::cout << afterDelete[i].square.x << " "
+//                                  << afterDelete[i].square.y << " "
+//                                  << afterDelete[i].square.sideSize << std::endl;
+                        thisSolution.push_back(afterDelete[i]);
+                    }
+                    solutions.push_back(thisSolution);
                     continue;
                 }
-                for(size_t i = 0; i < prevSolution.size(); ++i)
-                    currentSolution.push_back(prevSolution[i]);
+                currentSolution.push_back(matrix[iteratorElement]);
                 algorithmX(afterDelete, solutions, currentSolution);
+                currentSolution.pop_back();
             }
         }
     }
@@ -147,26 +175,49 @@ int main(){
     std::vector <std::vector <class MatrixElement>> solutions;
     std::vector <class MatrixElement> currentSolution;
     matrix = createMatrix(mainSquareSize);
-    //printMatrix(matrix);
     algorithmX(matrix, solutions, currentSolution);
-    int minSize = 99;
-    int minI;
+//    for(size_t i = 0; i < solutions.size(); ++i){
+//        std::cout << "------------------" << std::endl;
+//        for(size_t j = 0; j < solutions[i].size(); ++j){
+//            std::cout << solutions[i][j].square.x << " "
+//                      << solutions[i][j].square.y << " "
+//                      << solutions[i][j].square.sideSize << std::endl;
+//        }
+//    }
+    int minSize = 999;
+    int minI = 0;
     for(size_t i = 0; i < solutions.size(); ++i){
-        currentSolution = solutions[i];
-        if(currentSolution.size() < minSize){
-            minSize = currentSolution.size();
+        if(minSize > solutions[i].size()){
             minI = i;
+            minSize = solutions[i].size();
         }
     }
-    currentSolution = solutions[minI];
-    //std::cout << "ALL: " << solutions.size() << std::endl;
-    std::cout << currentSolution.size() << std::endl;
-    for(int i = 0; i < currentSolution.size(); ++i){
-        std::cout << currentSolution[i].square.x << " "
-                  << currentSolution[i].square.y << " "
-                  << currentSolution[i].square.sideSize << std::endl;
+    std::cout << minSize << std::endl;
+    for(size_t i = 0; i < solutions[minI].size(); ++i){
+        std::cout << solutions[minI][i].square.x << " "
+                  << solutions[minI][i].square.y << " "
+                  << solutions[minI][i].square.sideSize << std::endl;
     }
+
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
