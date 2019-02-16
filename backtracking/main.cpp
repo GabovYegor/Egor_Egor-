@@ -30,6 +30,7 @@ public:
     class Row* down;
     class Element* elementsHEAD;
     unsigned countElements;
+    unsigned rowNumder;
     bool DELETED;
 }Row;
 
@@ -42,6 +43,7 @@ public:
     Element* elementsHEAD;
     unsigned x;
     unsigned y;
+    unsigned columnNumber;
     bool DELETED;
 }Column;
 
@@ -85,7 +87,8 @@ void printColumns(Column** columns){
     Column* currentColumn = *columns;
     do{
         std::cout << " COLUMN X =  " << currentColumn->x
-                  << " COLUMN Y =  " << currentColumn->y;
+                  << " COLUMN Y =  " << currentColumn->y
+                  << " COLUMN NUMBER " << currentColumn->columnNumber;
         if(currentColumn->DELETED)
                     std::cout << " DELETED" << std::endl;
                 else
@@ -104,7 +107,9 @@ void createRows(Row**& rows, std::vector <Square>& squares){
     lastRow->up = firstRow;
     lastRow->down = firstRow;
     firstRow->square = squares[0];
+    firstRow->rowNumder = 0;
     lastRow->square = squares[squares.size()-1];
+    lastRow->rowNumder = squares.size() - 1;
     for(unsigned i = 1; i < squares.size() - 1; ++i){
         Row* newRow = new Row;
         newRow->down = lastRow;
@@ -112,6 +117,7 @@ void createRows(Row**& rows, std::vector <Square>& squares){
         lastRow->up->down = newRow;
         lastRow->up = newRow;
         newRow->square = squares[i];
+        newRow->rowNumder = i;
     }
 }
 
@@ -124,16 +130,19 @@ void createColumns(Column**& columns, unsigned mainSquareSize){
     firstColumn->left = lastColumn;
     firstColumn->x = 0;
     firstColumn->y = 0;
+    firstColumn->columnNumber = 0;
     lastColumn->left = firstColumn;
     lastColumn->right = firstColumn;
     lastColumn->x = (static_cast<int>(pow(mainSquareSize, 2)) - 1) % mainSquareSize;
     lastColumn->y = (static_cast<int>(pow(mainSquareSize, 2)) - 1) / mainSquareSize;
+    lastColumn->columnNumber = static_cast<unsigned>(pow(mainSquareSize, 2)) - 1;
     for(unsigned i = 1; i < static_cast<unsigned>(pow(mainSquareSize, 2)) - 1; ++i){
         Column* newElement = new Column;
         newElement->right = lastColumn;
         newElement->left = lastColumn->left;
         newElement->x = i / mainSquareSize;
         newElement->y = i % mainSquareSize;
+        newElement->columnNumber = i;
         lastColumn->left->right = newElement;
         lastColumn->left = newElement;
     }
@@ -194,6 +203,7 @@ void createElements(Row**& rows, Column**& colums){
 }
 
 void deleteRow(Row**& rows, Row*& row2delete){
+    row2delete->DELETED = true;
     Row* currentRow = *rows;
     while(currentRow != row2delete)
         currentRow = currentRow->down;
@@ -201,11 +211,10 @@ void deleteRow(Row**& rows, Row*& row2delete){
         *rows = currentRow->down;
     currentRow->up->down = currentRow->down;
     currentRow->down->up = currentRow->up;
-    row2delete->DELETED = true;
-    //delete row2delete;
 }
 
 void deleteColumn(Column**& columns, Column*& column2delete){
+    column2delete->DELETED = true;
     Column* currentColumn = *columns;
     while(currentColumn != column2delete)
         currentColumn = currentColumn->right;
@@ -213,18 +222,23 @@ void deleteColumn(Column**& columns, Column*& column2delete){
         *columns = currentColumn->right;
     currentColumn->left->right = currentColumn->right;
     currentColumn->right->left = currentColumn->left;
-    column2delete->DELETED = true;
-    //delete column2delete;
 }
 
-void insert2Column(Column**& columns, std::vector<class Column*> deletedColumn){
-    Column* lastColumn = *columns;
-    lastColumn = lastColumn->left;
+void insert2Column(Column**& columns, std::vector<class Column*>& deletedColumn){
+    Column* currentColumn;
     for(unsigned i = 0; i < deletedColumn.size(); ++i){
-        deletedColumn[i]->right = lastColumn;
-        deletedColumn[i]->left = lastColumn->left;
-        lastColumn->left->right = deletedColumn[i];
-        lastColumn->left = deletedColumn[i];
+        currentColumn = *columns;
+        if(deletedColumn[i]->columnNumber < currentColumn->columnNumber)
+            *columns = deletedColumn[i];
+        if(deletedColumn[i]->columnNumber < currentColumn->columnNumber ||
+           deletedColumn[i]->columnNumber > currentColumn->left->columnNumber);
+        else
+            while(currentColumn->columnNumber < deletedColumn[i]->columnNumber)
+                currentColumn = currentColumn->right;
+        deletedColumn[i]->right = currentColumn;
+        deletedColumn[i]->left = currentColumn->left;
+        currentColumn->left->right = deletedColumn[i];
+        currentColumn->left = deletedColumn[i];
         deletedColumn[i]->DELETED = false;
     }
     for(unsigned i = 0 ; i < deletedColumn.size(); ++i)
@@ -232,13 +246,20 @@ void insert2Column(Column**& columns, std::vector<class Column*> deletedColumn){
 }
 
 void insert2Row(Row**& rows, std::vector <class Row*> deletedRow){
-    Row* lastRow = *rows;
-    lastRow = lastRow->up;
+    Row* currentRow;
     for(unsigned i = 0; i < deletedRow.size(); ++i){
-        deletedRow[i]->down = lastRow;
-        deletedRow[i]->up = lastRow->up;
-        lastRow->up->down = deletedRow[i];
-        lastRow->up = deletedRow[i];
+        currentRow = *rows;
+        if(deletedRow[i]->rowNumder < currentRow->rowNumder)
+            *rows = deletedRow[i];
+        if(deletedRow[i]->rowNumder < currentRow->rowNumder ||
+           deletedRow[i]->rowNumder > currentRow->up->rowNumder);
+        else
+            while(currentRow->rowNumder < deletedRow[i]->rowNumder)
+                currentRow = currentRow->down;
+        deletedRow[i]->down = currentRow;
+        deletedRow[i]->up = currentRow->up;
+        currentRow->up->down = deletedRow[i];
+        currentRow->up = deletedRow[i];
         deletedRow[i]->DELETED = false;
     }
     for(unsigned i = 0 ; i < deletedRow.size(); ++i)
@@ -256,7 +277,7 @@ unsigned getSize(Element* elementHEAD){
     return count;
 };
 
-Column* insertMinColumn(Column** column, unsigned& maxCount){
+Column* findMinColumn(Column** column, unsigned& maxCount){
     maxCount = 0;
     Column* currentColumn = *column;
     Column* minColumn = *column;
@@ -275,8 +296,8 @@ Column* insertMinColumn(Column** column, unsigned& maxCount){
 void algorithmX(Row** rows, Column** column){;
     unsigned maxColumnSize = 0;
     std::vector <class Row*> deletedRows;
-    std::vector <class Column*> deletedColums;
-    Column* minColumn = insertMinColumn(column, maxColumnSize);
+    std::vector <class Column*> deletedColumns;
+    Column* minColumn = findMinColumn(column, maxColumnSize);
     std::cout << "MIN COUNT " << minColumn->countElements << std::endl;
     std::cout << "MAX COUNT " << maxColumnSize << std::endl;
     if(maxColumnSize == 1){
@@ -285,6 +306,9 @@ void algorithmX(Row** rows, Column** column){;
     Element* currentColumnElement = minColumn->elementsHEAD;
     do{
         Element* currentRowElement = currentColumnElement->row->elementsHEAD;
+        std::cout << "HELLO" << currentRowElement->row->square.getX()
+                  << currentRowElement->row->square.getY()
+                  << currentRowElement->row->square.getSideSize() << std::endl;
         do{
             Element* columnDELETE = currentRowElement->column->elementsHEAD;
             do{
@@ -297,7 +321,7 @@ void algorithmX(Row** rows, Column** column){;
                 }
                 columnDELETE = columnDELETE->down;
             }while(columnDELETE != currentRowElement->column->elementsHEAD);
-            deletedColums.push_back(currentRowElement->column);
+            deletedColumns.push_back(currentRowElement->column);
             deleteColumn(column, currentRowElement->column);
             currentRowElement = currentRowElement->right;
         }while(currentRowElement != currentColumnElement->row->elementsHEAD);
@@ -313,13 +337,13 @@ void algorithmX(Row** rows, Column** column){;
         std::cout << "ПОСЛЕ ОТРАБОТКИ РЕКУРСИИ" << std::endl;
         printColumns(column);
         printRows(rows);
-
         std::cout << "ВОСТАНОВЛЕННАЯ МАТРИЦА" << std::endl;
-        insert2Column(column, deletedColums);
+        insert2Column(column, deletedColumns);
         insert2Row(rows, deletedRows);
         printColumns(column);
         printRows(rows);
         currentColumnElement = currentColumnElement->down;
+        //break;
     }while(currentColumnElement != minColumn->elementsHEAD);
 }
 
