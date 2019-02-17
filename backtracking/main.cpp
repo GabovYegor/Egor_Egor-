@@ -208,24 +208,26 @@ void deleteRow(Row**& rows, Row*& row2delete){
     Row* currentRow = *rows;
     while(currentRow != row2delete)
         currentRow = currentRow->down;
-    if(currentRow == *rows)
-        *rows = currentRow->down;
+
     currentRow->up->down = currentRow->down;
     currentRow->down->up = currentRow->up;
+    if(currentRow == *rows)
+        *rows = currentRow->down;
 }
 
-void deleteColumn(Column**& columns, Column*& column2delete){
+void deleteColumn(Column** columns, Column*& column2delete){
     column2delete->DELETED = true;
     Column* currentColumn = *columns;
     while(currentColumn != column2delete)
         currentColumn = currentColumn->right;
-    if(currentColumn == *columns)
-        *columns = currentColumn->right;
+
     currentColumn->left->right = currentColumn->right;
     currentColumn->right->left = currentColumn->left;
+    if(currentColumn == *columns)
+        *columns = currentColumn->right;
 }
 
-void insert2Column(Column**& columns, std::vector<class Column*>& deletedColumn){
+void insert2Column(Column** columns, std::vector<class Column*>& deletedColumn){
     Column* currentColumn;
     for(unsigned i = 0; i < deletedColumn.size(); ++i){
         currentColumn = *columns;
@@ -246,7 +248,7 @@ void insert2Column(Column**& columns, std::vector<class Column*>& deletedColumn)
         deletedColumn.pop_back();
 }
 
-void insert2Row(Row**& rows, std::vector <class Row*> deletedRow){
+void insert2Row(Row**& rows, std::vector <class Row*>& deletedRow){
     Row* currentRow;
     for(unsigned i = 0; i < deletedRow.size(); ++i){
         currentRow = *rows;
@@ -272,7 +274,7 @@ unsigned getSize(Element* elementHEAD){
     unsigned count = 0;
     do{
         currentElement = currentElement->down;
-        if(!currentElement->row->DELETED)
+       if(!currentElement->row->DELETED)
             ++count;
     }while(currentElement != elementHEAD);
     return count;
@@ -283,6 +285,10 @@ Column* chooseMinColumn(Column** column, unsigned& maxCount){ // проблем�
     Column* currentColumn = *column;
     Column* minColumn = *column;
     do{
+        if(currentColumn->DELETED){
+            currentColumn = currentColumn->right;
+            continue;
+        }
         minColumn->countElements = getSize(minColumn->elementsHEAD);
         currentColumn->countElements = getSize(currentColumn->elementsHEAD);
         if(minColumn->countElements > currentColumn->countElements)
@@ -294,82 +300,98 @@ Column* chooseMinColumn(Column** column, unsigned& maxCount){ // проблем�
     return minColumn;
 }
 
-void algorithmX(Column**, Row**, Row*, std::vector<int>);
+void algorithmX(Column**, Row**, Row*, std::vector <int>&,
+                std::vector <std::vector <int>>&);
 
-void algorithmXChooseRows(Column** columns, Row** rows, std::vector<int>& solution){
-//    std::cout << "algorithmXChooseRows" << std::endl;
+void algorithmXChooseRows(Column** columns, Row** rows, std::vector<int>& currentSolution,
+                          std::vector <std::vector <int>>& SOLUTIONS){
     unsigned maxCount = 0;
     Column* minColumn = chooseMinColumn(columns, maxCount);
-//    std::cout << "MINCOLUMN " << minColumn->columnNumber;
     Element* currentColumnElement = minColumn->elementsHEAD;
-//    std::cout << maxCount << minColumn->countElements << std::endl;
+    std::cout << "MAX " << maxCount << std::endl;
+    std::cout << "MIN COLUMN " << minColumn->countElements << " " << minColumn->x << minColumn->y << std::endl;
     if(maxCount == 1){
-        Row* currentRow = *rows;
-        std::cout << "SOLUTION ";
+        std::cout << "END";
+        Row* curRow = *rows;
         do{
-            std::cout << currentRow->rowNumder << " ";
-            currentRow = currentRow->down;
-        }while(currentRow != *rows);
-        for(int i = 0; i < solution.size(); ++i)
-            std::cout << solution[i] << " ";
-        std::cout << std::endl;
-        for(int i = 0; i < solution.size(); ++i)
-            solution.pop_back();
-        std::cout << "END" << std::endl;
+            currentSolution.push_back(curRow->rowNumder);
+            curRow = curRow->down;
+        }while(curRow != *rows);
+        SOLUTIONS.push_back(currentSolution);
+        for(int i = 0; i < currentSolution.size(); ++i){
+            currentSolution.pop_back();
+        }
         return;
     }
-    do{
-//        std::cout << "TRY TO SEND " << currentColumnElement->row->square.getX()
-//                                     << currentColumnElement->row->square.getY()
-//                                     << currentColumnElement->row->square.getSideSize() << std::endl;
-        if(!currentColumnElement->row->DELETED){
-            solution.push_back(currentColumnElement->row->rowNumder);
-//            std::cout << "SEND " << currentColumnElement->row->square.getX()
-//                                         << currentColumnElement->row->square.getY()
-//                                         << currentColumnElement->row->square.getSideSize() << std::endl;
-            algorithmX(columns, rows, currentColumnElement->row, solution);
+
+    if(maxCount == 0){
+        for(unsigned i = 0; i < SOLUTIONS.size(); ++i){
+            std::cout << std::endl;
+            for(unsigned j = 0; j < SOLUTIONS[i].size(); ++j){
+                std::cout << " " << SOLUTIONS[i][j];
+            }
         }
+        std::cout << "GOVNO";
+        exit(0);
+    }
+
+    do{
+        std::cout << "WANTED TO MAIN ROW" << currentColumnElement->row->square.getX()
+                                << currentColumnElement->row->square.getY()
+                                << currentColumnElement->row->square.getSideSize() << std::endl;
+        if(currentColumnElement->row->DELETED){
+            currentColumnElement = currentColumnElement->down;
+            continue;
+        }
+        std::cout << "MAIN ROW" << currentColumnElement->row->square.getX()
+                                << currentColumnElement->row->square.getY()
+                                << currentColumnElement->row->square.getSideSize() << std::endl;
+        algorithmX(columns, rows, currentColumnElement->row, currentSolution,
+                   SOLUTIONS);
         currentColumnElement = currentColumnElement->down;
     }while(currentColumnElement != minColumn->elementsHEAD);
 }
 
-void algorithmX(Column** columns, Row** rows, Row* row2DELETE, std::vector<int> solution){
-//    std::cout << "algorithmXXX" << std::endl;
-    Element* currentColumn = row2DELETE->elementsHEAD;
+void algorithmX(Column** columns, Row** rows, Row* row2DELETE, std::vector <int>& currentSolution,
+                std::vector <std::vector <int>>& SOLUTIONS){
+    std::cout << "МАТРИЦА ДЛЯ ФУНКЦИИ " << std::endl;
+    printRows(rows);
     std::vector <class Row*> deletedRows;
     std::vector <class Column*> deletedColumns;
+    Element* currentColumn = row2DELETE->elementsHEAD;
     do{
+        if(currentColumn->column->DELETED)
+            continue;
         Element* currentRow = currentColumn->column->elementsHEAD;
         do{
-//            std::cout << "TRY TO DELETE " << currentRow->row->square.getX()
-//                      << currentRow->row->square.getY()
-//                      << currentRow->row->square.getSideSize() << std::endl;
-            if(currentRow->row != row2DELETE && !currentRow->row->DELETED){
-//                std::cout << "DELETE ROW " << currentRow->row->square.getX()
-//                          << currentRow->row->square.getY()
-//                          << currentRow->row->square.getSideSize() << std::endl;
-                deletedRows.push_back(currentRow->row);
-                deleteRow(rows, currentRow->row);
+            if(currentRow->row == row2DELETE || currentRow->row->DELETED){
+                currentRow = currentRow->down;
+                continue;
             }
+            std::cout << "DELETE ROW " << currentRow->row->square.getX()
+                                << currentRow->row->square.getY()
+                                << currentRow->row->square.getSideSize() << std::endl;
+            deletedRows.push_back(currentRow->row);
+            deleteRow(rows, currentRow->row);
             currentRow = currentRow->down;
         }while(currentRow != currentColumn->column->elementsHEAD);
-//        std::cout << "DELETE COLUMN " << currentColumn->column->x
-//                  << currentColumn->column->y << std::endl;
+        std::cout << "DELETE COLUMN " << currentColumn->column->x << currentColumn->column->y << std::endl;
         deletedColumns.push_back(currentColumn->column);
         deleteColumn(columns, currentColumn->column);
         currentColumn = currentColumn->right;
     }while(currentColumn != row2DELETE->elementsHEAD);
-//    std::cout << "DELETE MAIN ROW " << row2DELETE->square.getX()
-//              << row2DELETE->square.getY()
-//              << row2DELETE->square.getSideSize() << std::endl;
+    std::cout << "DELETE MAIN ROW: " << row2DELETE->square.getX()
+              << row2DELETE->square.getY()
+              << row2DELETE->square.getSideSize() << std::endl;
     deletedRows.push_back(row2DELETE);
     deleteRow(rows, row2DELETE);
-//    printColumns(columns);
-//    printRows(rows);
-    algorithmXChooseRows(columns, rows, solution);
-//    std::cout << "ВОССТАНАВЛИВАЕМ МАТРИЦУ" << std::endl;
-    insert2Column(columns, deletedColumns);
+    std::cout << "МАТРИЦА ПОСЛЕ ОТРАБОТКИ ФУНКЦИИ " << std::endl;
+    printColumns(columns);
+    printRows(rows);
+    algorithmXChooseRows(columns, rows, currentSolution, SOLUTIONS);
+    std::cout << "ВОСТАНОВИМ МАТРИЦУ" << std::endl;
     insert2Row(rows, deletedRows);
+    insert2Column(columns, deletedColumns);
 }
 
 int main(){
@@ -382,20 +404,11 @@ int main(){
     createRows(rows, squares);
     createColumns(columns, mainSquareSize);
     createElements(rows, columns);
-    std::vector<int> solution;
-    printRows(rows);
-    algorithmXChooseRows(columns, rows, solution);
+    std::vector <int> currentSolution;
+    std::vector <std::vector <int>> SOLUTIONS;
+    algorithmXChooseRows(columns, rows, currentSolution, SOLUTIONS);
     return 0;
 }
-
-
-
-
-
-
-
-
-
 
 
 
