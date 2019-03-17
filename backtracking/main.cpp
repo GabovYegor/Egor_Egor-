@@ -25,6 +25,9 @@ public:
 
 class Row{
 public:
+    Row(){
+        isDeleted = false;
+    }
     Square square;
     class Row* down;
     class Element* elementsHEAD = nullptr;
@@ -33,6 +36,9 @@ public:
 
 class Column{
 public:
+    Column(){
+        isDeleted = false;
+    }
     class Column* right;
     Element* elementsHEAD = nullptr;
     unsigned x;
@@ -61,21 +67,27 @@ public:
 void printMatrix(class Matrix& matrix){
     std::cout << "INFO ABOUT ROWS:::" << std::endl;
     class Row* currentRow = matrix.rowPointer;
-    do{
-        std::cout << currentRow->square.getX() << " " <<
-                     currentRow->square.getY() << " " <<
-                     currentRow->square.getSideSize() << std::endl;
-        currentRow = currentRow->down;
-
-    }while(currentRow != matrix.rowPointer);
+    if(currentRow){
+        do{
+            std::cout << currentRow->square.getX() << " " <<
+                         currentRow->square.getY() << " " <<
+                         currentRow->square.getSideSize() << std::endl;
+            currentRow = currentRow->down;
+        }while(currentRow != matrix.rowPointer);
+    }else
+        std::cout << "Row is empty" << std::endl;
     std::cout << "INFO ABOUT COLUMNS:::" << std::endl;
     class Column* currentColumn = matrix.columnPoiner;
-    do{
-        std::cout << currentColumn->x << " " << currentColumn->y << std::endl;
-        currentColumn = currentColumn->right;
-    }while(currentColumn != matrix.columnPoiner);
-}
+    if(currentColumn){
+        do{
+            std::cout << currentColumn->x << " " << currentColumn->y << std::endl;
+            currentColumn = currentColumn->right;
+        }while(currentColumn != matrix.columnPoiner);
+    }
+    else
+        std::cout << "Column is empty" << std::endl;
 
+}
 void createSquare(const unsigned mainSquareSize, std::vector <Square>& squares){
     for(unsigned iteratorSize = mainSquareSize - 1; iteratorSize > 0; --iteratorSize){ // плохо
         for(unsigned x = 0; x < mainSquareSize; ++x){
@@ -212,42 +224,42 @@ void deleteRow(class Matrix& matrix, class Row*& row2delete){
 
 void insertColumn(class Matrix& matrix, std::vector<class Column*>& deletedColumns){
     std::cout << "COLUMN" << std::endl;
+    int i = 0;
     if(!matrix.columnPoiner){
         deletedColumns[0]->isDeleted = false;
         matrix.columnPoiner = deletedColumns[0];
         deletedColumns[0]->right = deletedColumns[0];
-        for(unsigned i = 1; i < deletedColumns.size(); ++i){
-            deletedColumns[i]->isDeleted = false;
-            deletedColumns[i]->right = matrix.columnPoiner->right;
-            matrix.columnPoiner->right = deletedColumns[i];
-        }
-        return;
+        i = 1;
     }
-    for(unsigned i = 0; i < deletedColumns.size(); ++i){
+    for(; i < deletedColumns.size(); ++i){
         deletedColumns[i]->isDeleted = false;
-        deletedColumns[i]->right = matrix.columnPoiner->right;
-        matrix.columnPoiner->right = deletedColumns[i];
+        Column* currentColumn = matrix.columnPoiner;
+        do{
+            currentColumn = currentColumn->right;
+        }while(currentColumn->right != matrix.columnPoiner);
+        currentColumn->right = deletedColumns[i];
+        deletedColumns[i]->right = matrix.columnPoiner;
     }
     deletedColumns.clear();
 }
 
 void insertRow(class Matrix& matrix, std::vector<class Row*>& deletedRows){
     std::cout << "ROW" << std::endl;
+    int i = 0;
     if(!matrix.rowPointer){
         deletedRows[0]->isDeleted = false;
         matrix.rowPointer = deletedRows[0];
-        deletedRows[0] = deletedRows[0]->down;
-        for(unsigned i = 1; i < deletedRows.size(); ++i){
-            deletedRows[i]->isDeleted = false;
-            deletedRows[i]->down = matrix.rowPointer->down;
-            matrix.rowPointer->down = deletedRows[i];
-        }
-        return;
+        deletedRows[0]->down = deletedRows[0];
+        i = 1;
     }
-    for(unsigned i = 0; i < deletedRows.size(); ++i){
+    for(; i < deletedRows.size(); ++i){
         deletedRows[i]->isDeleted = false;
-        deletedRows[i]->down = matrix.rowPointer->down;
-        matrix.rowPointer->down = deletedRows[i];
+        Row* currentRow = matrix.rowPointer;
+        do{
+            currentRow = currentRow->down;
+        }while(currentRow->down != matrix.rowPointer);
+        currentRow->down = deletedRows[i];
+        deletedRows[i]->down = matrix.rowPointer;
     }
     deletedRows.clear();
 }
@@ -280,22 +292,32 @@ Column* chooseMinColumn(Matrix& matrix, unsigned& maxColumnSize){
             maxColumnSize = currentColumnSize;
         currentColumn = currentColumn->right;
     }while(currentColumn != matrix.columnPoiner);
-    std::cout << maxColumnSize << std::endl; // input 0 => minColumn = nullptr и падает
+    std::cout << maxColumnSize << std::endl;
     return minColumn;
 }
 
-void algorithmX(Matrix& matrix){
+void algorithmX(Matrix& matrix, std::vector <Row*>& currentSolution, std::vector<std::vector <Row*>>& solutions){
     std::vector<class Column*> deletedColumns;
     std::vector<class Row*> deletedRows;
     unsigned maxColumnSize = 0;
     Column* minColumn = chooseMinColumn(matrix, maxColumnSize);
-    if(!minColumn){
+    if(!minColumn || !maxColumnSize){
         std::cout << "END" << std::endl;
+        solutions.push_back(currentSolution);
+        currentSolution.clear();
         return;
     }
     std::cout << "min Column: " << minColumn->x << " " << minColumn->y << " SIZE: " << maxColumnSize << std::endl;
-    if(maxColumnSize == 1)
+    if(maxColumnSize == 1){
+        Row* currentRow = matrix.rowPointer;
+        do{
+            currentSolution.push_back(currentRow);
+            currentRow = currentRow->down;
+        }while(currentRow != matrix.rowPointer);
+        solutions.push_back(currentSolution);
+        currentSolution.clear();
         return;
+    }
     Element* currentColumnElement = minColumn->elementsHEAD;
     do{
         Element* currentRowElement = currentColumnElement->row->elementsHEAD;
@@ -315,9 +337,7 @@ void algorithmX(Matrix& matrix){
                                  currentDeleteColumn->row->square.getY() << " " <<
                                  currentDeleteColumn->row->square.getSideSize() << std::endl;
                     deletedRows.push_back(currentDeleteColumn->row);
-                    std::cout << "s" << std::endl;
                     deleteRow(matrix, currentDeleteColumn->row);
-                    std::cout << "s" << std::endl;
                 }
                 currentDeleteColumn = currentDeleteColumn->down;
             }while(currentDeleteColumn != currentRowElement->column->elementsHEAD);
@@ -331,27 +351,20 @@ void algorithmX(Matrix& matrix){
         std::cout << "delete mainRow: " << currentColumnElement->row->square.getX() << " " <<
                      currentColumnElement->row->square.getY() << " " <<
                      currentColumnElement->row->square.getSideSize() << std::endl;
+        currentSolution.push_back(currentColumnElement->row);
         deletedRows.push_back(currentColumnElement->row);
         deleteRow(matrix, currentColumnElement->row);
         std::cout << "delete mainColumn: " << minColumn->x << " " << minColumn->y << std::endl;
         deletedColumns.push_back(minColumn);
         deleteColumn(matrix, minColumn);
-        std::cout << "Матрица после функции: " << std::endl;
+        //std::cout << "Матрица после функции: " << std::endl;
         //printMatrix(matrix);
-        algorithmX(matrix);
+        algorithmX(matrix, currentSolution, solutions);
         insertColumn(matrix, deletedColumns);
-        insertRow(matrix, deletedRows);
-        for(int i = 0 ; i < deletedRows.size(); ++i){
-            std::cout << deletedRows[i]->square.getX() << " "
-                      << deletedRows[i]->square.getY() << " "
-                      << deletedRows[i]->square.getSideSize() << std::endl;
-        }
-        std::cout << "Восстановленная матрица" << std::endl;
+        insertRow(matrix, deletedRows);        
+        //std::cout << "Восстановленная матрица" << std::endl;
         //printMatrix(matrix);
-        std::cout << "NEXT" << std::endl;
         currentColumnElement = currentColumnElement->down;
-        if(currentColumnElement == minColumn->elementsHEAD)
-            std::cout << "PIZDA" << std::endl;
     }while(currentColumnElement != minColumn->elementsHEAD);
 }
 
@@ -365,7 +378,17 @@ int main(){
     createColumn(matrix, mainSquareSize);
     createElements(matrix);
     printMatrix(matrix);
-    algorithmX(matrix);
+    std::vector <Row*> currentSolution;
+    std::vector<std::vector <Row*>> solutions;
+    algorithmX(matrix, currentSolution, solutions);
+    for(size_t i = 0; i < solutions.size(); ++i){
+        std::cout << "----------------" << std::endl;
+        for(size_t j = 0; j < solutions[i].size(); ++j){
+            std::cout << solutions[i][j]->square.getX() << " "
+                      << solutions[i][j]->square.getY() << " "
+                      << solutions[i][j]->square.getSideSize() << std::endl;
+        }
+    }
     return 0;
 }
 
