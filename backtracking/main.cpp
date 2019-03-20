@@ -1,213 +1,144 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-// #define DEBUG
-#define maxN 40
 
-using namespace std;
+#define INFO
 
 // Печатает содержимое Table.
-void printTable(const vector<vector<int>>& Table, int N)
-{
-    for(int i=0; i<N; ++i)
-    {
-        for(int j=0; j<N; ++j)
-        {
-            cout.width(3);
-            cout << Table[i][j] << " ";
-        }
-        cout << endl;
+void printTable(const std::vector<std::vector<int>>& Table, int squareSize){
+    for(int i = 0; i < squareSize; ++i){
+        for(int j = 0; j < squareSize; ++j)
+            std::cout << Table[i][j] << " ";
+        std::cout << std::endl;
     }
 }
 
-// Проверка на выход за пределы массива
-bool isOutOfBounds(int x, int y, int width, int N)
-{
-    return ((width>(N-x)) || (width>(N-y)));
+void removePart(std::vector<std::vector<int>>& Table, int squareSize, int x, int y, int partNumber){ // удалить часть
+    for(int i = y; i < squareSize && Table[i][x] == partNumber; ++i)
+        for (int j = x; j < squareSize && Table[i][j] == partNumber; ++j)
+            Table[i][j] = 0;
 }
 
-void removePart(vector<vector<int>>& Table, int N, int x, int y, int partNumber)
-{
-    for(int i = y; (i < N) && (Table[i][x]==partNumber); ++i)
-    {
-        for (int j = x; (j < N) && (Table[i][j]==partNumber); ++j)
-        {
-            Table[i][j]=0;
-        }
-    }
-}
-
-// N - размер столешницы, x,y - координаты части, width - ее размер, partNumber - номер
-bool setPart(vector<vector<int>>& Table, int N, int x, int y, int width, int partNumber)
-{
-    if (isOutOfBounds(x, y, width, N)) return false;
-    for(int i = 0; i < width; ++i)
-    {
-        for (int j = 0; j < width; ++j)
-        {
-            if (!Table[y+i][x+j])
+bool setPart(std::vector<std::vector<int>>& Table, int squareSize, int x, int y, int currentSquareSize, int partNumber){
+    if(currentSquareSize > squareSize - x || currentSquareSize > squareSize - y) // установить часть
+        return false;
+    for(int i = 0; i < currentSquareSize; ++i)
+        for(int j = 0; j < currentSquareSize; ++j)
+            if(!Table[y+i][x+j])
                 Table[y+i][x+j]=partNumber;
-            else
-            {
-                removePart(Table, N, x, y, partNumber);
+            else{
+                removePart(Table, squareSize, x, y, partNumber);
                 return false;
             }
-        }
-    }
     return true;
 }
 
-bool findFreeCell(vector<vector<int>>& Table, int N, int& x, int& y)
-{
-    while (Table[y][x]!=0)
-    {
-        if (x==N-1)
-        {
-            x=0;
-            ++y;
-        }
-        else ++x;
-        if (x>=N || y>=N)
-            return false;
-    }
-    return true;
-}
-
-//
-int buildPrime(vector<vector<int>>& Table, int N, int x, int y, vector<vector<int>>& bestTable)
-{
-    #ifdef DEBUG
-        printTable(Table, N);
-        cout << endl;
-    #endif
-
-    static int partNmbr = 5; // 4 детали уже есть
-    static int bestPartNmbr = 20;
-
-    if (partNmbr>bestPartNmbr) return 0;
-    if (findFreeCell(Table, N, x, y)) // Если есть свободная клетка
-    {
-        #ifdef DEBUG
-            cout << x << " " << y << endl;
-        #endif
-        for (int i = N-1; i > 0; --i)
-        {
-            if (setPart(Table, N, x, y, i, partNmbr)) // То пробуем для нее различные размеры детали
-            {
-                #ifdef DEBUG
-                    cout << "Part is set" << endl;
-                #endif
-                ++partNmbr;
-                buildPrime(Table, N, x, y, bestTable); // И для каждого размера детали проходимся по остальным клеткам
-                --partNmbr;
+bool findFreeCell(std::vector<std::vector<int>>& table, int squareSize, int& x, int& y){ // ищем свободную клетку
+    for(int i = 0; i < squareSize; ++i)
+        for(int j = 0; j < squareSize; ++j)
+            if(!table[i][j]){
+                x = j;
+                y = i;
+                return true;
             }
-            removePart(Table, N, x, y, partNmbr);
+    return false;
+}
+
+void buildPrime(std::vector<std::vector<int>>& table, int squareSize, int x, int y, std::vector<std::vector<int>>& bestTable,
+                                                     int partNmbr, int& bestPartNmbr){ // построение наилучшего решения
+    if(partNmbr > bestPartNmbr) // есть вариант получше
+        return;
+    if (findFreeCell(table, squareSize, x, y)){ // if x,y free cell
+        #ifdef INFO
+            std::cout << "Free point: " << x << " " << y << std::endl;
+        #endif
+        for (int iteratorSize = squareSize - 1; iteratorSize > 0; --iteratorSize){
+            if (setPart(table, squareSize, x, y, iteratorSize, partNmbr)){ // То пробуем для нее различные размеры детали
+                #ifdef INFO
+                    std::cout << "Part is set" << std::endl;
+                    printTable(table, squareSize);
+                    std::cout << std::endl;
+                #endif
+                buildPrime(table, squareSize, x, y, bestTable, partNmbr + 1, bestPartNmbr); // И для каждого размера детали проходимся по остальным клеткам
+            }
+            removePart(table, squareSize, x, y, partNmbr);
         }
     }
-    else if ((partNmbr-1)<bestPartNmbr)
-    {
-        bestPartNmbr = partNmbr-1; // Потому что часть под номером partNmbr пристроить не удалось
-        bestTable = Table;
+    else if ((partNmbr - 1) < bestPartNmbr){
+        bestPartNmbr = partNmbr - 1; // partNmbr не удалось поставить
+        bestTable = table;
     }
-    return bestPartNmbr;
 }
 
-// Возвращает размер части
-int findPart(vector<vector<int>>& Table, int N, int& x, int& y, int K)
-{
-    while (Table[y][x]!=K)
-    {
-        if (x==N-1)
-        {
-            x=0;
-            ++y;
+void printParts(std::vector<std::vector<int>>& table, int squareSize, int partNmbr){ // вывод решения
+    #ifdef INFO
+        printTable(table, squareSize);
+    #endif
+    for(int iterPartNbr = 1; iterPartNbr <= partNmbr; ++iterPartNbr){
+        bool isFind = false;
+        int i, j;
+        for(i = 0; i < squareSize; ++i){
+            for(j = 0; j < squareSize; ++j){
+                if(table[i][j] == iterPartNbr){
+                    std::cout << j + 1 << " " << i + 1 << " ";
+                    isFind = true;
+                    break;
+                }
+            }
+            if(isFind)
+                break;
         }
-        else ++x;
-        if (x>=N || y>=N)
-            return false;
-    }
-    int i = 0;
-    while (Table[y][x+i]==K)
-    {
-        if ((x+i)<N)
-        {
-            ++i;
-        }
-        else return --i;
-    }
-    return i;
-}
-
-void printParts(vector<vector<int>>& Table, int N, int partNmbr)
-{
-    int x, y, size;
-    for(int i = 1; i <= partNmbr; ++i)
-    {
-        x = 0;
-        y = 0;
-        size = findPart(Table, N, x, y, i);
-        cout << x+1 << " " << y+1 << " " << size << endl;
+        int size = 0;
+        for(;table[i][j] == iterPartNbr; ++j, ++size);
+        std::cout << size << std::endl;
     }
 }
 
-int solve(vector<vector<int>>& Table, vector<vector<int>>& BestTable, int N)
-{
-    if ((N%2)==0)
-    {
-        cout << 4 << endl;
-        cout << 1       << " " << 1     << " " << N/2 << endl;
-        cout << 1       << " " << N/2+1 << " " << N/2 << endl;
-        cout << N/2+1   << " " << 1     << " " << N/2 << endl;
-        cout << N/2+1   << " " << N/2+1 << " " << N/2 << endl;
-    }
-    else if ((N%3)==0)
-    {
-        int K = N/3;
-        cout << 6 << endl;
-        cout << 1       << " " << 1     << " " << 2*K << endl;
-        cout << 2*K+1   << " " << 1     << " " << K << endl;
-        cout << 2*K+1   << " " << K+1   << " " << K <<endl;
-        cout << 2*K+1   << " " << 2*K+1 << " " << K << endl;
-        cout << K+1     << " " << 2*K+1 << " " << K << endl;
-        cout << 1       << " " << 2*K+1 << " " << K << endl;
-    }
-    else if ((N%5)==0)
-    {
-        int K=N/5;
-        cout << 8 << endl;
-        cout << 1       << " " << 1     << " " << 3*K << endl;
-        cout << 1+3*K   << " " << 1     << " " << 2*K << endl;
-        cout << 1+3*K   << " " << 1+2*K << " " << 2*K << endl;
-        cout << 1       << " " << 1+3*K << " " << 2*K << endl;
-        cout << 1+2*K   << " " << 1+3*K << " " << K   << endl;
-        cout << 1+2*K   << " " << 1+4*K << " " << K   << endl;
-        cout << 1+3*K   << " " << 1+4*K << " " << K   << endl;
-        cout << 1+4*K   << " " << 1+4*K << " " << K   << endl;
-    }
-    else
-    {
-        // Ставим заранее известные детали, сокращая "размеры" столешницы для вычислений примерно на 75%
-        setPart(Table, N, 0, 0, N/2+1, 1);
-        setPart(Table, N, N/2+1, 0, N/2, 2);
-        setPart(Table, N, 0, N/2+1, N/2, 3);
-        setPart(Table, N, N/2+1, N/2, 1, 4);
-        int K = buildPrime(Table, N, N/2+2, N/2, BestTable);
-        cout << K << endl;
-        printParts(BestTable, N, K);
-    }
-}
 
-int main()
-{
-    int N;
-    cin >> N;
-    if (N>maxN)
-    {
-        cout << "Why is N>" << maxN << "?" << endl;
+int main(){
+    int squareSize;
+    std::cin >> squareSize;
+    if(squareSize % 2 ==0){
+        std::cout << 4 << std::endl;
+        std::cout << 1       << " " << 1     << " " << squareSize / 2 << std::endl;
+        std::cout << 1       << " " << squareSize / 2 + 1 << " " << squareSize / 2 << std::endl;
+        std::cout << squareSize / 2+1   << " " << 1     << " " << squareSize / 2 << std::endl;
+        std::cout << squareSize / 2+1   << " " << squareSize / 2 + 1 << " " << squareSize / 2 << std::endl;
         return 0;
     }
-    vector<vector<int>> Table(N, vector<int>(N,0)); // Инициализировали массив NxN нулями
-    vector<vector<int>> Result(N, vector<int>(N));
-    solve(Table, Result, N);
+    if(squareSize % 3 == 0){
+        int param = squareSize / 3; // зависит от стороны квадрата
+        std::cout << 6 << std::endl;
+        std::cout << 1       << " " << 1     << " " << 2  * param << std::endl;
+        std::cout << 2 * param + 1   << " " << 1     << " " << param   << std::endl;
+        std::cout << 2 * param + 1   << " " << param + 1   << " " << param   << std::endl;
+        std::cout << 2 * param + 1   << " " << 2 * param + 1 << " " << param   << std::endl;
+        std::cout << param + 1     << " " << 2 * param + 1 << " " << param   << std::endl;
+        std::cout << 1       << " " << 2 * param + 1 << " " << param   << std::endl;
+        return 0;
+    }
+    if(squareSize % 5 ==0){
+        int param = squareSize / 5; // зависит от стороны квадрата
+        std::cout << 8 << std::endl;
+        std::cout << 1       << " " << 1     << " " << 3 * param << std::endl;
+        std::cout << 1 + 3 * param   << " " << 1     << " " << 2 * param << std::endl;
+        std::cout << 1 + 3 * param   << " " << 1 + 2 * param << " " << 2 * param << std::endl;
+        std::cout << 1       << " " << 1 + 3 * param << " " << 2 * param << std::endl;
+        std::cout << 1 + 2 * param   << " " << 1 + 3 * param << " " << param   << std::endl;
+        std::cout << 1 + 2 * param   << " " << 1 + 4 * param << " " << param   << std::endl;
+        std::cout << 1 + 3 * param   << " " << 1 + 4 * param << " " << param   << std::endl;
+        std::cout << 1 + 4 * param   << " " << 1 + 4 *param << " " << param   << std::endl;
+        return 0;
+    }
+    std::vector<std::vector<int>> table(squareSize, std::vector<int>(squareSize, 0)); // Инициализировали массив NxN нулями
+    std::vector<std::vector<int>> solution(squareSize, std::vector<int>(squareSize));
+    setPart(table, squareSize, 0, 0, squareSize / 2 + 1, 1);
+    setPart(table, squareSize, squareSize / 2 + 1, 0, squareSize / 2, 2);
+    setPart(table, squareSize, 0, squareSize / 2 + 1, squareSize / 2, 3);
+    setPart(table, squareSize, squareSize / 2 + 1, squareSize / 2, 1, 4);
+    int countParts = 999;
+    buildPrime(table, squareSize, squareSize / 2 + 2, squareSize / 2, solution, 5, countParts);
+    std::cout << countParts << std::endl;
+    printParts(solution, squareSize, countParts);
     return 0;
 }
