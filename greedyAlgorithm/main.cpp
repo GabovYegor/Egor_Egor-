@@ -1,23 +1,31 @@
 #include <iostream>
 #include <map>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+//#define INFO
 
 class Node{
 public:
-    double length;
     std::string name;
+    double length;
     class Node* next;
+    bool isVisited;
 public:
-    Node(){}
-    Node(const std::string name, const unsigned length): name(name), length(length), next(nullptr){}
-    void print(){
-        Node* currentEl = next;
-        while (currentEl){
-            std::cout << currentEl->name << currentEl->length << "--->";
-            currentEl = currentEl->next;
-        }
-        std::cout << std::endl;
-    }
+    Node(): name(""), length(0), next(nullptr), isVisited(false){}
+    Node(const std::string name, const unsigned length): name(name), length(length), next(nullptr), isVisited(false){}
+    void print();
 };
+
+void Node::print(){
+    Node* currentEl = next;
+    while (currentEl){
+        std::cout << currentEl->name << currentEl->length << ", ";
+        currentEl = currentEl->next;
+    }
+    std::cout << std::endl;
+}
 
 void addNode(Node*& head, Node* newElement){
     Node* current = head;
@@ -26,22 +34,40 @@ void addNode(Node*& head, Node* newElement){
     current->next = newElement;
 }
 
-void greedyAlgorithm(std::map <std::string, Node*>& graphList, std::string nodeNameFrom, std::string nodeNameTo){
+bool greedySort(const Node* a, const Node* b){
+    return a->length < b->length;
+}
+
+bool greedyAlgorithm(const std::map <std::string, Node*>& graphList, const std::string& nodeNameFrom,
+                     const std::string& nodeNameTo, std::vector <std::string>& solution){
     if(nodeNameFrom == nodeNameTo)
-        return;
+        return true;
     auto searchHead = graphList.find(nodeNameFrom);
-    Node* current = searchHead->second->next;
-    unsigned minLength = 99999;
-    std::string minKey;
+    if(searchHead->second->isVisited)
+        return false;
+    searchHead->second->isVisited = true;
+    std::vector <Node*> sortKeys;
+    Node* current = searchHead->second->next;  // sort by length
     while(current){
-        if(current->length < minLength){
-            minKey = current->name;
-            minLength = current->length;
-        }
+        sortKeys.push_back(current);
         current = current->next;
     }
-    std::cout << minKey;
-    greedyAlgorithm(graphList, minKey, nodeNameTo);
+    if(sortKeys.empty())
+        return false;
+    std::sort(sortKeys.begin(), sortKeys.end(), greedySort);
+#ifdef INFO
+    std::cout << "sort ways in node: " << searchHead->first << std::endl;
+    for(auto it: sortKeys)
+        std::cout << it->name << it->length << " ";
+    std::cout << std::endl;
+#endif
+    for(auto it: sortKeys){
+        if(greedyAlgorithm(graphList, it->name, nodeNameTo, solution)){
+            solution.push_back(it->name);
+            return true;
+        }
+    }
+    return false;
 }
 
 int main(){
@@ -61,11 +87,29 @@ int main(){
         Node* newElement = new Node(nodeNameTo, currentLength);
         addNode(head, newElement);
     }
-    for(auto it = graphList.begin(); it != graphList.end(); ++it){
-        std::cout << it->first << "--->";
-        it->second->print();
+
+#ifdef INFO
+    for(auto it: graphList){
+        std::cout << it.first << ":  ";
+        it.second->print();
     }
-    std::cout << start;
-    greedyAlgorithm(graphList, start, finish);
+#endif
+    std::vector <std::string> solution;
+    solution.push_back(finish);
+    greedyAlgorithm(graphList, start, finish, solution);
+    solution.push_back(start);
+    for(int i = solution.size() - 1; i != 0; --i)
+        std::cout << solution[i];
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
