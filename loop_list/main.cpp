@@ -15,19 +15,19 @@ template <class Type>
 class List_Iterator{
 public:
     List_Iterator(Node<Type>* node = nullptr): it(node){}
-    Type operator*(){
+    Type operator*() const{
         return it->value;
     }
 
-    Node<Type>* operator ->(){
+    Node<Type>* operator ->() const{
         return &it->value;
     }
 
-    bool operator ==(const List_Iterator& other){
+    bool operator ==(const List_Iterator& other) const{
         return other.it == it;
     }
 
-    bool operator !=(const List_Iterator& other){
+    bool operator !=(const List_Iterator& other) const{
         return  other.it != it;
     }
 
@@ -50,6 +50,7 @@ public:
     ~List_Iterator(){}
 
 private:
+public:
     Node<Type>* it;
 };
 
@@ -127,13 +128,29 @@ public:
         currentNode->next = head_;
     }
 
+    List_Iterator <Type> insert(const List_Iterator <Type>& pos, const Type& value){
+        List_Iterator <Type> currentIt = head_;
+        for(; currentIt.it->next != pos.it; ++currentIt);
+        Node <Type>* newNode = new Node<Type>(value, currentIt.it->next);
+        currentIt.it->next = newNode;
+        return List_Iterator <Type>(newNode);
+    }
+
+    List_Iterator <Type> erase(const List_Iterator <Type>& pos){
+        List_Iterator <Type> currentIt = head_;
+        for(; currentIt.it->next != pos.it; ++currentIt);
+        delete currentIt.it->next;
+        currentIt.it->next = currentIt.it->next->next;
+        return List_Iterator <Type>(currentIt.it->next);
+    }
+
     int size() const{
         unsigned size = 0;
         for(Node<Type>* currentNode = head_->next; currentNode != head_; currentNode = currentNode->next, ++size);
         return size;
     }
 
-    bool isEmpty(){
+    bool isEmpty() const{
         return size() == 0;
     }
 
@@ -142,11 +159,11 @@ public:
             pop_front();
     }
 
-    Node<Type>* begin(){
+    Node<Type>* begin() const{
         return head_->next;
     }
 
-    void printLoopList(){
+    void printLoopList() const{
         Node<Type>* currentNode = head_->next;
         std::cout << "Elements: ";
         while(currentNode != head_){
@@ -159,7 +176,7 @@ public:
 private:
     Node<Type>* head_;
 };
-
+// есть ли смысл всегда передавать переменные в функцию как const& ???
 int main(){
     list<int> loopList;
     loopList.push_back(3);
@@ -167,8 +184,9 @@ int main(){
     loopList.push_back(9);
     loopList.push_front(11);
     loopList.printLoopList();
-    List_Iterator<int> listIt(loopList.begin());
-    std::cout << *listIt++;
+    loopList.insert(loopList.begin(), 177);
+    loopList.erase(loopList.begin());
+    loopList.printLoopList();
     return 0;
 }
 
