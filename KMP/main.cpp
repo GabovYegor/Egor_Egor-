@@ -20,14 +20,12 @@ void prefixFunction(const std::string pattern_str, std::vector <int>& prefixVect
     }
 }
 
-bool algorithmKMP(std::string& main_str, std::string& pattern_str, std::vector <int>& prefixVector, std::vector <int>& solution){
-    bool hasSolution = false;
+int algorithmKMP(std::string& main_str, std::string& pattern_str, std::vector <int>& prefixVector){
     size_t itMain = 0, itPattern = 0;
     while(itMain != main_str.size()){
         if(pattern_str[itPattern] == main_str[itMain]){
-            if(itPattern == pattern_str.size() - 1){
-                solution.push_back(itMain - pattern_str.size() + 1);
-                hasSolution = true;
+            if(itMain == main_str.size() - 1 && itPattern != 0){
+                return main_str.size() - itPattern - 1;
             }
             ++itMain;
             ++itPattern;
@@ -39,13 +37,17 @@ bool algorithmKMP(std::string& main_str, std::string& pattern_str, std::vector <
                 itPattern = prefixVector[itPattern - 1];
         }
     }
-    return hasSolution;
+    return -1;
 }
 
 int main(){
     std::string main_str;
     std::string pattern_str;
-    std::cin >> pattern_str >> main_str;
+    std::cin >> main_str >> pattern_str;
+    if(pattern_str.size() != main_str.size()){
+        std::cout << -1 << std::endl;
+        return 0;
+    }
     std::vector <int> prefixVector(pattern_str.size());
     prefixFunction(pattern_str, prefixVector);
 #ifdef INFO
@@ -56,11 +58,14 @@ int main(){
         std::cout << it << " ";
     std::cout << std::endl;
 #endif
-    std::vector <int> solution;
-    if(algorithmKMP(main_str, pattern_str, prefixVector, solution)){
-        for(size_t i = 0; i < solution.size() - 1; ++i)
-            std::cout << solution[i] << ",";
-        std::cout << solution[solution.size() - 1] << std::endl;
+    int itKMP = algorithmKMP(main_str, pattern_str, prefixVector);
+    if(itKMP != -1){
+        for(int i = 0; i < itKMP; ++i)
+            if(main_str[i] != pattern_str[i + pattern_str.size() - itKMP]){
+                std::cout << -1;
+                return 0;
+            }
+        std::cout << itKMP;
     }
     else
         std::cout << -1 << std::endl;
