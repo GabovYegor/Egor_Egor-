@@ -3,6 +3,7 @@
 #include <map>
 #include <algorithm>
 #include <unistd.h>
+#include <memory>
 
 #define INFO
 
@@ -13,7 +14,10 @@ public:
     double length;
     char name;
 public:
-
+    ~Node(){
+        if(next)
+            delete next;
+    }
 };
 
 class Graph{
@@ -28,12 +32,16 @@ public:
 public:
     Graph(char name, int heuristicNumber)
         : way(nullptr), cost(1.79769e+308), heuristicNumber(heuristicNumber), priorityNumber(1.79769e+308), name(name), inComputedSet(false){}
+    ~Graph(){
+        delete way;
+    }
     bool operator ==(const Graph& g){
         return name == g.name;
     }
+
 };
 
-void printAdjacencyList(std::map <char, Graph*>& adjacencyList){
+void printAdjacencyList(std::map <char, std::shared_ptr <Graph>>& adjacencyList){
     std::cout << "######## adjacency list #########" << std::endl;
     for(auto iteratorMap: adjacencyList){
         std::cout << " \"" << iteratorMap.first << "\": ";
@@ -50,12 +58,12 @@ void addNodeToGraph(Graph* graphHead, char nodeTo, int wayLength){
     graphHead->way = newNode;
 }
 
-void relaxNeighborhoods(std::map <char, Graph*>& adjacencyList, char newSetElement, int costPrevNode, std::vector <Graph*>& queue){
+void relaxNeighborhoods(std::map <char, std::shared_ptr <Graph>>& adjacencyList, char newSetElement, int costPrevNode, std::vector <Graph*>& queue){
 #ifdef INFO
     std::cout << "recount neighborhoods:" << std::endl;
 #endif
     for(Node* currentNeighborhood = adjacencyList.find(newSetElement)->second->way; currentNeighborhood; currentNeighborhood = currentNeighborhood->next){
-        Graph* currentNeighborhoodInGlobal = adjacencyList.find(currentNeighborhood->name)->second;
+        Graph* currentNeighborhoodInGlobal = adjacencyList.find(currentNeighborhood->name)->second.get();
         if(currentNeighborhoodInGlobal->inComputedSet)
             continue;
 #ifdef INFO
@@ -64,7 +72,7 @@ void relaxNeighborhoods(std::map <char, Graph*>& adjacencyList, char newSetEleme
                           << currentNeighborhoodInGlobal->priorityNumber << "\"" << std::endl;
 #endif
         if(currentNeighborhoodInGlobal->cost > costPrevNode + currentNeighborhood->length){
-            currentNeighborhoodInGlobal->from = adjacencyList.find(newSetElement)->second;
+            currentNeighborhoodInGlobal->from = adjacencyList.find(newSetElement)->second.get();
             currentNeighborhoodInGlobal->cost = costPrevNode + currentNeighborhood->length;
             currentNeighborhoodInGlobal->priorityNumber = currentNeighborhoodInGlobal->heuristicNumber + currentNeighborhoodInGlobal->cost;
 #ifdef INFO
@@ -104,8 +112,8 @@ void relaxNeighborhoods(std::map <char, Graph*>& adjacencyList, char newSetEleme
 #endif
 }
 
-void algorithmAStar(std::map <char, Graph*>& adjacencyList, char start, char finish, std::vector <Graph*>& way){
-    Graph* newSetElement = adjacencyList.find(start)->second;
+void algorithmAStar(std::map <char, std::shared_ptr<Graph>>& adjacencyList, char start, char finish, std::vector <Graph*>& way){
+    Graph* newSetElement = adjacencyList.find(start)->second.get();
     newSetElement->inComputedSet = true;
     newSetElement->cost = 0;
     std::vector <Graph*> queue;
@@ -136,7 +144,7 @@ void algorithmAStar(std::map <char, Graph*>& adjacencyList, char start, char fin
 int main(){
     char start, finish, nodeFrom, nodeTo;
     double wayLength;
-    std::map <char, Graph*> adjacencyList;
+    std::map <char, std::shared_ptr <Graph>> adjacencyList;
     std::cin >> start >> finish;
     while (std::cin >> nodeFrom >> nodeTo >> wayLength) {
         auto searchFrom = adjacencyList.find(nodeFrom);
@@ -151,15 +159,19 @@ int main(){
             adjacencyList.insert(std::pair<char, Graph*> (nodeFrom, graphHead));
         }
         else
-            addNodeToGraph(searchFrom->second, nodeTo, wayLength);
+            addNodeToGraph(searchFrom->second.get(), nodeTo, wayLength);
     }
 #ifdef INFO
     printAdjacencyList(adjacencyList);
 #endif
     std::vector <Graph*> way;
     algorithmAStar(adjacencyList, start, finish, way);
+#ifdef INFO
+    std::cout << "answer: ";
+#endif
     std::cout << start;
     for(int i = way.size() - 1; i != -1; --i)
         std::cout << way[i]->name;
+    std::cout << std::endl;
     return 0;
 }
