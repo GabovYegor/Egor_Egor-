@@ -3,8 +3,9 @@
 #include <map>
 #include <algorithm>
 #include <memory>
+#include <iomanip>
 
-//#define INFO
+#define INFO
 
 class Node{
 public:
@@ -70,7 +71,7 @@ public:
                     matrix[i][j].get()->isVisited = true;
             }
         }
-        return all_edges;
+        return std::move(all_edges);
     }
     GraphMatrix& operator -=(GraphMatrix& other){
         for(size_t i = 0; i < matrix.size(); ++i){
@@ -91,14 +92,14 @@ char convertMap(std::map <char, int>& tranlator, int target){
 }
 
 std::ostream& operator<< (std::ostream& out, GraphMatrix& graph){
-    std::cout << "  ";
+    std::cout << "    ";
     for(size_t i = 0; i < graph.matrix.size(); ++i)
-        std::cout << convertMap(graph.translator, i) << " ";
+        std::cout << convertMap(graph.translator, i) << "   ";
     std::cout << std::endl;
     for(size_t i = 0; i < graph.matrix.size(); ++i){
         std::cout << convertMap(graph.translator, i) << " ";
         for(size_t j = 0; j < graph.matrix[i].size(); ++j){
-            std::cout << graph.matrix[i][j]->flow << " ";
+            std::cout << std::setw(3) << graph.matrix[i][j]->flow << " ";
         }
         out << std::endl;
     }
@@ -106,7 +107,7 @@ std::ostream& operator<< (std::ostream& out, GraphMatrix& graph){
 }
 
     // в некоторых местах вместо можно вызывать функцию convertMap
-int algorithmFordFulkerson(GraphMatrix& graph, char start, char finish){
+int algorithmFordFulkerson(GraphMatrix& graph, const char& start, const char& finish){
     int graphStart = graph.translator.find(start)->second;
     int graphFinish = graph.translator.find(finish)->second;
     std::vector <int> neighborhoods;
@@ -126,12 +127,12 @@ int algorithmFordFulkerson(GraphMatrix& graph, char start, char finish){
             if(!neighborhoods.size()){
                 if(graphStart == graph.translator.find(start)->second){
 #ifdef INFO
-                    std::cout << "there are no ways from start - end of algorithm" << std::endl;
+                    std::cout << "there are no ways from start - end of algorithm" << std::endl << "max flow throught graph: ";
 #endif
                     return resultMaxFlow;
                 }
 #ifdef INFO
-                std::cout << "return to element: " << way[way.size() - 1] << " - there are no way" << std::endl;
+                std::cout << "return to element: " << convertMap(graph.translator, way[way.size() - 1]) << " - there are no way" << std::endl;
 #endif
                 graph.matrix[way[way.size() - 1]][graphStart].get()->isVisited = true;
                 graphStart = way[way.size() - 1];
@@ -139,13 +140,13 @@ int algorithmFordFulkerson(GraphMatrix& graph, char start, char finish){
                 continue;
             }
 #ifdef INFO
-            std::cout << " neighborhoods " << graphStart << ": ";
+            std::cout << "neighborhoods " << convertMap(graph.translator, graphStart) << ": ";
             for(auto it: neighborhoods){
-                std::cout << "(" << it << ";" << graph.matrix[graphStart][it].get()->flow << "), ";
+                std::cout << "(" << convertMap(graph.translator, it) << ";" << graph.matrix[graphStart][it].get()->flow << "), ";
             }
             std::cout << std::endl;
 #endif
-            int maxFlow = -999;
+            int maxFlow = -999999;
             int maxFlowElement = 0;
             for(size_t i = 0; i < neighborhoods.size(); ++i){
                 if(graph.matrix[graphStart][neighborhoods[i]].get()->flow > maxFlow){
@@ -154,7 +155,7 @@ int algorithmFordFulkerson(GraphMatrix& graph, char start, char finish){
                 }
             }
 #ifdef INFO
-            std::cout << "Best: (" << neighborhoods[maxFlowElement] << "; " << maxFlow << "), ";
+            std::cout << "Best: (" << convertMap(graph.translator, neighborhoods[maxFlowElement]) << "; " << maxFlow << "), ";
 #endif
             flowQueue.push_back(maxFlow);
             way.push_back(graphStart);
@@ -178,8 +179,8 @@ int algorithmFordFulkerson(GraphMatrix& graph, char start, char finish){
         std::cout << std::endl << "min flow: " << minFlow << std::endl;
         std::cout << "way: ";
         for(auto it: way)
-            std::cout << it << " ";
-        std::cout << graphStart << std::endl;
+            std::cout << convertMap(graph.translator, it) << " ";
+        std::cout << convertMap(graph.translator, graphStart) << std::endl;
 #endif
         for(int i = way.size() - 1; i != -1; --i){
             graph.matrix[way[i]][graphStart].get()->isVisited = false;
@@ -192,12 +193,6 @@ int algorithmFordFulkerson(GraphMatrix& graph, char start, char finish){
         std::cout << graph;
 #endif
     }
-}
-
-bool comparePair(std::pair <char, char> a, std::pair <char, char> b){
-    if(a.first == b.first)
-        return a.second < b.second;
-    return a.first < b.first;
 }
 
 int main(){
@@ -216,7 +211,16 @@ int main(){
     std::cout << "Graph after algorithm: " << std::endl << graph;
 #endif
     originalGraph -= graph;
-    std::sort(all_edges.begin(), all_edges.end(), comparePair);
+#ifdef INFO
+    std::cout << "original graph - graph after function:" << std::endl;
+    std::cout << originalGraph;
+#endif
+    std::sort(all_edges.begin(), all_edges.end(),
+              [](const std::pair <char, char>& a, const std::pair <char, char>& b)->bool{
+        if(a.first == b.first)
+            return a.second < b.second;
+        return a.first < b.first;
+    });
     for(size_t i = 0; i < all_edges.size(); ++i){
         graph.translator.find(all_edges[i].second)->second;
         std::cout << all_edges[i].first << " " << all_edges[i].second << " "
