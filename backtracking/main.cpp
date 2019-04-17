@@ -5,8 +5,10 @@
 #define INFO
 
 // Печатает содержимое Table.
-void printTable(const std::vector<std::vector<int>>& Table, int squareSize){
+void printTable(const std::vector<std::vector<int>>& Table, int squareSize, int deep){
     for(int i = 0; i < squareSize; ++i){
+        for(int k = 0; k < deep; ++k)
+            std::cout << "       ";
         for(int j = 0; j < squareSize; ++j)
             std::cout << Table[i][j] << " ";
         std::cout << std::endl;
@@ -33,7 +35,7 @@ bool setPart(std::vector<std::vector<int>>& Table, int squareSize, int x, int y,
     return true;
 }
 
-bool findFreeCell(std::vector<std::vector<int>>& table, int squareSize, int& x, int& y){ // ищем свободную клетку
+bool findFreeCell(std::vector<std::vector<int>>& table, const int& squareSize, int& x, int& y){ // ищем свободную клетку
     for(int i = 0; i < squareSize; ++i)
         for(int j = 0; j < squareSize; ++j)
             if(!table[i][j]){
@@ -45,21 +47,19 @@ bool findFreeCell(std::vector<std::vector<int>>& table, int squareSize, int& x, 
 }
 
 void buildPrime(std::vector<std::vector<int>>& table, int squareSize, int x, int y, std::vector<std::vector<int>>& bestTable,
-                                                     int partNmbr, int& bestPartNmbr){ // построение наилучшего решения
+                                                     int partNmbr, int& bestPartNmbr, int deep){ // построение наилучшего решения
     if(partNmbr > bestPartNmbr) // есть вариант получше
         return;
     if (findFreeCell(table, squareSize, x, y)){ // if x,y free cell
-        #ifdef INFO
-            std::cout << "Free point: " << x << " " << y << std::endl;
-        #endif
         for (int iteratorSize = squareSize - 1; iteratorSize > 0; --iteratorSize){
-            if (setPart(table, squareSize, x, y, iteratorSize, partNmbr)){ // То пробуем для нее различные размеры детали
+            if(setPart(table, squareSize, x, y, iteratorSize, partNmbr)){ // То пробуем для нее различные размеры детали
                 #ifdef INFO
-                    std::cout << "Part is set" << std::endl;
-                    printTable(table, squareSize);
+                    //std::cout << "Part is set" << std::endl;
+                    std::cout << "Free point: " << x + 1 << " " << y + 1 << std::endl;
+                    printTable(table, squareSize, deep);
                     std::cout << std::endl;
                 #endif
-                buildPrime(table, squareSize, x, y, bestTable, partNmbr + 1, bestPartNmbr); // И для каждого размера детали проходимся по остальным клеткам
+                buildPrime(table, squareSize, x, y, bestTable, partNmbr + 1, bestPartNmbr, deep+1); // И для каждого размера детали проходимся по остальным клеткам
             }
             removePart(table, squareSize, x, y, partNmbr);
         }
@@ -72,7 +72,8 @@ void buildPrime(std::vector<std::vector<int>>& table, int squareSize, int x, int
 
 void printParts(std::vector<std::vector<int>>& table, int squareSize, int partNmbr){ // вывод решения
     #ifdef INFO
-        printTable(table, squareSize);
+    std::cout << "Solution table:" << std::endl;
+        printTable(table, squareSize, 0);
     #endif
     for(int iterPartNbr = 1; iterPartNbr <= partNmbr; ++iterPartNbr){
         bool isFind = false;
@@ -137,7 +138,7 @@ int main(){
     setPart(table, squareSize, 0, squareSize / 2 + 1, squareSize / 2, 3);
     setPart(table, squareSize, squareSize / 2 + 1, squareSize / 2, 1, 4);
     int countParts = 999;
-    buildPrime(table, squareSize, squareSize / 2 + 2, squareSize / 2, solution, 5, countParts);
+    buildPrime(table, squareSize, squareSize / 2 + 2, squareSize / 2, solution, 5, countParts, 0);
     std::cout << countParts << std::endl;
     printParts(solution, squareSize, countParts);
     return 0;

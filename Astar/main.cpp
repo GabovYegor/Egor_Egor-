@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <memory>
 
-//#define INFO
+#define INFO
 #define LABA
 
 // node of graph

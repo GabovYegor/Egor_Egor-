@@ -4,7 +4,7 @@
 #include <string>
 #include <algorithm>
 
-//#define INFO
+#define INFO
 
 class Node{
 public:
@@ -54,19 +54,24 @@ bool greedyAlgorithm(const std::map <std::string, Node*>& graphList, const std::
     }
     if(sortKeys.empty())
         return false;
-    std::sort(sortKeys.begin(), sortKeys.end(), greedySort);
+
 #ifdef INFO
     std::cout << "sort ways in node: " << searchHead->first << std::endl;
-    for(auto it: sortKeys)
-        std::cout << it->name << it->length << " ";
+    if(sortKeys.size())
+        for(auto it: sortKeys)
+            std::cout << it->name << it->length << " ";
     std::cout << std::endl;
 #endif
+
+    std::sort(sortKeys.begin(), sortKeys.end(), greedySort);
+
     for(auto it: sortKeys){
         if(greedyAlgorithm(graphList, it->name, nodeNameTo, solution)){
             solution.push_back(it->name);
             return true;
         }
     }
+
     return false;
 }
 
@@ -102,14 +107,3 @@ int main(){
         std::cout << solution[i];
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-

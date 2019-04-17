@@ -5,7 +5,7 @@
 #include <memory>
 #include <iomanip>
 
-//#define INFO
+#define INFO
 
 // class for store node data
 class Node {
@@ -88,7 +88,7 @@ public:
         }
         return *this;
     }
-    friend std::ostream& operator<< (std::ostream& out, GraphMatrix& graph);
+    friend std::ostream& operator<< (std::ostream&, GraphMatrix&);
 };
 
 // return translate of int value
