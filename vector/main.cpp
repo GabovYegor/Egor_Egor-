@@ -3,11 +3,10 @@
 #include <cstddef> // size_t
 #include <initializer_list>
 #include <stdexcept>
-#include <iostream>
 
 namespace stepik
 {
-  template <typename Type>
+  template <class Type>
   class vector
   {
   public:
@@ -23,12 +22,9 @@ namespace stepik
 
      explicit vector(size_t count = 0){
         m_first = new Type[count];
-        for (size_t i = 0; i < count; i++){
-            m_first[i] = 0;
-        }
         m_last = m_first + count;
     }
-
+    
     template <typename InputIterator>
     vector(InputIterator first, InputIterator last){
         size_t vectorSize;
@@ -37,18 +33,18 @@ namespace stepik
         m_last = m_first + vectorSize;
         std::copy(first, last, m_first);
     }
-
+    
     vector(std::initializer_list <Type> init) : vector(init.begin(), init.end()){}
-
+    
     vector(const vector& other) : vector(other.begin(), other.end()){}
-
+    
     vector(vector&& other) noexcept{
         m_first = other.m_first;
         m_last = other.m_last;
         other.m_first = nullptr;
         other.m_last = nullptr;
     }
-
+    
     ~vector(){
         delete[] m_first;
     }
@@ -56,32 +52,32 @@ namespace stepik
     //assignment operators
     vector& operator=(const vector& other){
         if(this != &other){
-            delete[] m_first;
-            size_t vectorSize = other.m_last - other.m_first;
-            m_first = new Type[vectorSize];
+			delete[] m_first;
+            size_t vectorSize = other.m_last - other.m_first; 
+			m_first = new Type[vectorSize];
             m_last = m_first + vectorSize;
             std::copy(other.m_first, other.m_last, m_first);
             return *this;
-        }
+        }    
     }
 
-        vector& operator=(vector&& other) noexcept{
-            if (this != &other) {
-                delete[] m_first;
-                m_first = other.m_first;
-                m_last = other.m_last;
-                other.m_first = nullptr;
-                other.m_last = nullptr;
-            }
+	vector& operator=(vector&& other) noexcept{
+		if (this != &other) {
+			delete[] m_first;
+			m_first = other.m_first;
+			m_last = other.m_last;
+			other.m_first = nullptr;
+		    other.m_last = nullptr;
             return *this;
-        }
+		}
+    }
 
     // assign method
     template <typename InputIterator>
     void assign(InputIterator first, InputIterator last){
-        *this = std::move(vector(first, last));
+        *this = std::move(vector(first, last));   
     }
-
+      
     void resize(size_t count){
         iterator end = (count > size()) ? m_last : m_first + count;
         vector tempVector(count);
@@ -106,91 +102,31 @@ namespace stepik
         return it;
     }
 
-//    iterator insert(const_iterator pos, const Type& value){
-//            vector<Type> help(this->size() + 1);
-//            auto i = help.begin();
-
-//            for (auto index = this->begin(); index != pos; ++index, ++i) {
-//                *i = *index;
-//            }
-//            *i = value;
-//            ++i;
-//            size_t num = pos - this->begin();
-
-//            for (auto index = pos; index != this->end(); ++index, ++i) {
-//                *i = *index;
-//            }
-
-//            delete[] m_first;
-//            m_first = new Type[help.size()];
-//            m_last = m_first + help.size();
-
-//            for (auto index = this->begin(), i = help.begin(); index != this->end(); ++index, ++i) {
-//                *index = *i;
-//            }
-//            return this->begin() + num;
-//        }
-
-    iterator insert(const_iterator pos, const Type& value){
+   iterator insert(const_iterator pos, const Type& value){
         vector tempVector(size() + 1);
         size_t diff = pos - m_first;
         std::copy(m_first, m_first + diff, tempVector.m_first);
         *(tempVector.begin() + diff) = value;
         std::copy(m_first + diff, m_last, tempVector.begin() + diff + 1);
         *this = std::move(tempVector);
-        tempVector.m_first = nullptr;
         return m_first + diff;
     }
 
-    template <typename InputIterator>
+	template <typename InputIterator>
     iterator insert(const_iterator pos, InputIterator first, InputIterator last){
-        vector tempVector(size() + 1);
+        vector tempVector(size() + (last - first));
         size_t diff = pos - m_first;
         std::copy(m_first, m_first + diff, tempVector.m_first);
-        //*(tempVector.begin() + diff) = value;
         std::copy(first, last, tempVector.begin() + diff);
         std::copy(m_first + diff, m_last, tempVector.begin() + diff + (last - first));
         *this = std::move(tempVector);
-        tempVector.m_first = nullptr;
         return m_first + diff;
     }
-//    template <typename InputIterator>
-//    iterator insert(const_iterator pos, InputIterator first, InputIterator last){
-//        vector help(this->size() + (last - first));
-//        auto i = help.begin();
-//        auto index = this->begin();
-//        for (; index != pos; ++index, ++i)
-//        {
-//            *i = *index;
-//        }
-//        size_t num = pos - this->begin();
-//        for (auto k = first; k != last; ++k, ++i)
-//        {
-//            *i = *k;
-//        }
-//        for (; index != this->end(); ++index, ++i)
-//        {
-//            *i = *index;
-//        }
 
-//        delete[] m_first;
-//        m_first = new Type[help.size()];
-//        m_last = m_first + help.size();
+	void push_back(const value_type& value){
+		insert(this->end(), value);
+	}
 
-//        for (auto index = this->begin(), i = help.begin(); index != this->end(); ++index, ++i)
-//        {
-//            *index = *i;
-//        }
-//        return this->begin() + num;
-//    }
-
-    //push_back methods
-    void push_back(const value_type& value){
-        insert(this->end(), value);
-    }
-
-
-    //at methods
     reference at(size_t pos)
     {
       return checkIndexAndGet(pos);
@@ -201,7 +137,6 @@ namespace stepik
       return checkIndexAndGet(pos);
     }
 
-    //[] operators
     reference operator[](size_t pos)
     {
       return m_first[pos];
@@ -212,7 +147,6 @@ namespace stepik
       return m_first[pos];
     }
 
-    //*begin methods
     iterator begin()
     {
       return m_first;
@@ -223,7 +157,6 @@ namespace stepik
       return m_first;
     }
 
-    //*end methods
     iterator end()
     {
       return m_last;
@@ -234,19 +167,17 @@ namespace stepik
       return m_last;
     }
 
-    //size method
     size_t size() const
     {
       return m_last - m_first;
     }
 
-    //empty method
     bool empty() const
     {
       return m_first == m_last;
     }
 
-  private:
+  private:   
     reference checkIndexAndGet(size_t pos) const
     {
       if (pos >= size())
@@ -264,18 +195,3 @@ namespace stepik
     iterator m_last;
   };
 }// namespace stepik
-
-int main(){
-    stepik::vector<int> v({1,2,3,4});
-    for(size_t i = 0; i < v.size(); ++i){
-         std::cout << v[i] << " ";
-    }
-    std::cout << std::endl;
-    stepik::vector<int>::iterator it = v.begin();
-    v.insert(it + 4, 17);
-    for(size_t i = 0; i < v.size(); ++i){
-         std::cout << v[i] << " ";
-    }
-    std::cout << std::endl;
-    return 0;
-}
