@@ -2,7 +2,19 @@
 #include <vector>
 #include <string>
 
+// тест 4 неправильно проходит
+//shem
+//2
+//she
+//sh
+//1 2
+//1 1
+// возможно проблема в порядке
+// можно сохранить все решения и потом отсортировать их
+// + еще раз внимательно пройти по алгоритму
+
 #define alphabet_num 5
+//#define INFO
 
 class Bohr_Node{
 public:
@@ -96,26 +108,43 @@ void set_suffix_reference(std::vector <Bohr_Node>& bohr, int root_number){
             set_suffix_reference(bohr, it);
 }
 
+/*
+  есть глобальная проблема:she (she, he)
+*/
+
 void find_solution(const std::vector <Bohr_Node>& bohr, const std::string& main_str){
     int state = 0;
     for(size_t i = 0; i < main_str.size(); ++i){
         bool is_jump = false;
+#ifdef INFO
         std::cout << state << " " << main_str[i] << " -> ";
+#endif
         for(auto it: bohr[state].next_nodes)
             if(bohr[it].node_name == main_str[i]){
                 state = it;
                 is_jump = true;
             }
-        if(!is_jump)
+        if(!state)
+            continue;
+        if(!is_jump){
             state = bohr[state].suffix_ref;
+            --i;
+            continue;
+        }
         if(!state){
             --i;
             std::cout << 0 << std::endl;
             continue;
         }
+#ifdef INFO
         std::cout << bohr[state].node_id << std::endl;
-        if(bohr[state].is_end)
+#endif
+        if(bohr[state].is_end){
             std::cout << i - bohr[state].pattern_length + 2 << " " << bohr[state].pattern_num + 1 << std::endl;
+            if(bohr[bohr[state].suffix_ref].is_end)
+                std::cout << i - bohr[bohr[state].suffix_ref].pattern_length + 2 << " "
+                          << bohr[bohr[state].suffix_ref].pattern_num + 1 << std::endl;
+        }
     }
 }
 
@@ -131,7 +160,9 @@ int main(){
         add_str_to_bor(bohr, mas_pattern_str[i], i);
     }
     set_suffix_reference(bohr, 0);
+#ifdef INFO
     print(bohr, 0, 0);
+#endif
     find_solution(bohr, main_str);
     return 0;
 }
