@@ -56,7 +56,6 @@ public:
         return m_node->value;
     }
 
-    // Указатель на хранимое
     pointer operator-> (){
         return &(m_node->value);
     }
@@ -272,17 +271,30 @@ int main(){
     list.push_back(2);
     list.push_back(3);
     list.push_back(4);
+
+    // проход по обычному списку
     for(stepik::list_iterator<int> it_list = list.begin(); it_list != list.end(); ++it_list)
         std::cout << *it_list << " ";
     std::cout << std::endl;
 
+    // инициализируем костантный список с помощью конструктора копирования
     const stepik::list<int> const_list(list);
+
+    // проход по константному списку + пытаемся менять (++(*it_list)) значение списка
+    // значение может поменятся - неправильное поведение
+    // => нужно реализовать константный итератор
 
     for(stepik::list_iterator<int> it_list = const_list.begin(); it_list != const_list.end(); ++it_list){
         ++(*it_list);
         std::cout << *it_list << " ";
     }
     std::cout << std::endl;
+
+    // проходим по константному списку с помощью константного итератора
+    // теперь не можем менять значение листа - приведет к ошибке
+    // Warning:
+    // немного изменен метод begin - в данном случае вызывается метод cbegin
+    // в STL реализовано аналогично
 
     for(stepik::const_list_iterator<int> it_list = const_list.cbegin(); it_list != const_list.cend(); ++it_list){
         //++(*it_list);
