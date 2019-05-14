@@ -277,6 +277,11 @@ int main(){
         std::cout << *it_list << " ";
     std::cout << std::endl;
 
+    // лучше использовать константный итератор - если нет необходимости изменять данные
+    for(stepik::const_list_iterator<int> it_list = list.cbegin(); it_list != list.cend(); ++it_list)
+        std::cout << *it_list << " ";
+    std::cout << std::endl;
+    
     // инициализируем костантный список с помощью конструктора копирования
     const stepik::list<int> const_list(list);
 
