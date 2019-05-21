@@ -5,8 +5,14 @@
 
 // тест 4 неправильно проходит
 
-#define alphabet_num 5
-//#define INFO
+#define alphabet_num 100
+#define INFO
+
+//aaa
+//3
+//aaa
+//aa
+//a
 
 class Bohr_Node{
 public:
@@ -20,7 +26,7 @@ public:
     std::vector <int> next_nodes;
 public:
     Bohr_Node(): is_end(false), node_name('\0'), node_id(0),
-                 parent(0), suffix_ref(0), pattern_num(0), pattern_length(0)
+        parent(0), suffix_ref(0), pattern_num(0), pattern_length(0)
     { next_nodes.resize(alphabet_num, 0); }
 };
 
@@ -28,7 +34,7 @@ void print(std::vector <Bohr_Node>& bohr, int root_number, unsigned depth){
     for(unsigned i = 0; i < depth; ++i)
         std::cout << "    ";
     if(bohr[root_number].is_end)
-        std::cout << "E";
+        std::cout << "*";
     std::cout << bohr[root_number].node_name
               << bohr[root_number].node_id
               << bohr[root_number].suffix_ref << std::endl;
@@ -84,15 +90,22 @@ void set_suffix_reference(std::vector <Bohr_Node>& bohr, int root_number){
         bohr[root_number].suffix_ref = 0;
     else{
         int parent = bohr[root_number].parent;
-        if(!parent)
-            bohr[root_number].suffix_ref = 0;
-        else{
-            parent = bohr[parent].suffix_ref;
-            for(auto it: bohr[parent].next_nodes)
-                if(bohr[it].node_name == bohr[root_number].node_name)
-                    bohr[root_number].suffix_ref = bohr[it].node_id;
-            if(!bohr[root_number].suffix_ref)
+        if(parent){
+            parent = bohr[bohr[root_number].parent].suffix_ref;
+            bool is_suff_set = false;
+            while(parent && !is_suff_set){
+                for(auto it: bohr[parent].next_nodes)
+                    if(bohr[it].node_name == bohr[root_number].node_name){
+                        bohr[root_number].suffix_ref = bohr[it].node_id;
+                        is_suff_set = true;
+                    }
                 parent = bohr[parent].suffix_ref;
+            }
+
+            if(!parent && !is_suff_set)
+                for(auto it: bohr[parent].next_nodes)
+                    if(bohr[it].node_name == bohr[root_number].node_name)
+                        bohr[root_number].suffix_ref = bohr[it].node_id;
         }
     }
     for(auto it: bohr[root_number].next_nodes)
@@ -113,19 +126,28 @@ void find_solution(const std::vector <Bohr_Node>& bohr, const std::string& main_
                 state = it;
                 is_jump = true;
             }
-        if(!state)
+        if(!state){
+#ifdef INFO
+            std::cout << 0 << std::endl;
+#endif
             continue;
+        }
         if(bohr[bohr[state].suffix_ref].is_end && is_jump)
             solutions.push_back(std::make_pair(i - bohr[bohr[state].suffix_ref].pattern_length + 2,
                                                              bohr[bohr[state].suffix_ref].pattern_num + 1));
         if(!is_jump){
             state = bohr[state].suffix_ref;
             --i;
+#ifdef INFO
+            std::cout << 0 << std::endl;
+#endif
             continue;
         }
         if(!state){
             --i;
+#ifdef INFO
             std::cout << 0 << std::endl;
+#endif
             continue;
         }
 #ifdef INFO
@@ -146,9 +168,14 @@ int main(){
     for(int i = 0; i < num_pattern_str; ++i){
         std::cin >> mas_pattern_str[i];
         add_str_to_bor(bohr, mas_pattern_str[i], i);
+#ifdef INFO
+        std::cout << "bor after add: " << mas_pattern_str[i] << std::endl;
+        print(bohr, 0, 0);
+#endif
     }
     set_suffix_reference(bohr, 0);
 #ifdef INFO
+    std::cout << "bor after add suffix reference: " << std::endl;
     print(bohr, 0, 0);
 #endif
     std::vector <std::pair <int, int>> solutions;
