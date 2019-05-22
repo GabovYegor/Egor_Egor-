@@ -5,7 +5,7 @@
 
 // тест 4 неправильно проходит
 
-#define alphabet_num 100
+#define alphabet_num 5
 #define INFO
 
 class Bohr_Node{
@@ -140,11 +140,11 @@ void find_solution(const std::vector <Bohr_Node>& bohr, const std::string& main_
         }
 
         if(!is_jump){
-            state = bohr[state].suffix_ref;
-            --i;
 #ifdef INFO
             std::cout << 0 << std::endl;
 #endif
+            state = bohr[state].suffix_ref;
+            --i;
             continue;
         }
         if(!state){
