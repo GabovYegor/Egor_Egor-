@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -127,10 +128,6 @@ void find_solution(const std::vector <Bohr_Node>& bohr, const std::string& main_
 #endif
             continue;
         }
-        // пройти по всем суфф ссылкам до корня
-        if(bohr[bohr[state].suffix_ref].is_end && is_jump)
-            solutions.push_back(std::make_pair(i - bohr[bohr[state].suffix_ref].pattern_length + 2,
-                                                             bohr[bohr[state].suffix_ref].pattern_num + 1));
         int temp_state = state;
         while(temp_state){
             if(bohr[bohr[temp_state].suffix_ref].is_end && is_jump)
@@ -184,7 +181,6 @@ int main(){
 #endif
     std::vector <std::pair <int, int>> solutions;
     find_solution(bohr, main_str, solutions);
-    solutions.erase(std::unique(solutions.begin(), solutions.end()), solutions.end());
     std::sort(solutions.begin(), solutions.end());
     for(auto it: solutions)
         std::cout << it.first << " " << it.second << std::endl;
