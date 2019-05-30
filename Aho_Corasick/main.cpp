@@ -1,13 +1,10 @@
-
 #include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
 
-// тест 4 неправильно проходит
-
 #define alphabet_num 5
-#define INFO
+//#define INFO
 
 class Bohr_Node{
 public:
@@ -42,13 +39,24 @@ void print(std::vector <Bohr_Node>& bohr, int root_number, unsigned depth){
 void add_str_to_bor(std::vector <Bohr_Node>& bohr, const std::string& str, const int& pattern_num){
     size_t it_bohr = 0;
     for(size_t it_str = 0; it_str < str.size(); ++it_str){
+#ifdef INFO
+        std::cout << "find place for: " << str[it_str] << std::endl;
+#endif
         bool is_sim_contained = false;
         int temp_it_bohr = 0;
         for(size_t it_bohr_next_nodes = 0; it_bohr_next_nodes < bohr[it_bohr].next_nodes.size(); ++it_bohr_next_nodes){
             if(bohr[bohr[it_bohr].next_nodes[it_bohr_next_nodes]].node_name == str[it_str]){
+#ifdef INFO
+                std::cout << "Have way in bohr: " << bohr[bohr[it_bohr].next_nodes[it_bohr_next_nodes]].node_name <<
+                        bohr[bohr[it_bohr].next_nodes[it_bohr_next_nodes]].node_id << " == " << str[it_str] << std::endl;
+                std::cout << "Go by this way in bohr" << std::endl;
+#endif
                 is_sim_contained = true;
                 temp_it_bohr = bohr[bohr[it_bohr].next_nodes[it_bohr_next_nodes]].node_id;
                 if(it_str == str.size() - 1){
+#ifdef INFO
+                    std::cout << "It`s end point" << std::endl;
+#endif
                     bohr[bohr[it_bohr].next_nodes[it_bohr_next_nodes]].is_end = true;
                     bohr[bohr[it_bohr].next_nodes[it_bohr_next_nodes]].pattern_num = pattern_num;
                     bohr[bohr[it_bohr].next_nodes[it_bohr_next_nodes]].pattern_length = str.size();
@@ -57,10 +65,16 @@ void add_str_to_bor(std::vector <Bohr_Node>& bohr, const std::string& str, const
         }
 
         if(!is_sim_contained){
+#ifdef INFO
+            std::cout << "No way in bohr => create new element" << std::endl;
+#endif
             Bohr_Node new_bohr_node;
             if(it_str != str.size() - 1)
                 new_bohr_node.is_end = false;
             else{
+#ifdef INFO
+                    std::cout << "It`s end point" << std::endl;
+#endif
                 new_bohr_node.is_end = true;
                 new_bohr_node.pattern_num = pattern_num;
                 new_bohr_node.pattern_length = str.size();
@@ -81,12 +95,24 @@ void add_str_to_bor(std::vector <Bohr_Node>& bohr, const std::string& str, const
 }
 
 void set_suffix_reference(std::vector <Bohr_Node>& bohr, int root_number){
-    if(!root_number)
+#ifdef INFO
+    std::cout << "set suff ref for element " << bohr[root_number].node_name << bohr[root_number].node_id << std::endl;
+#endif
+    if(!root_number){
         bohr[root_number].suffix_ref = 0;
+#ifdef INFO
+        std::cout << bohr[root_number].node_name << bohr[root_number].node_id
+                  << " is a root => suff ref goes itself" << std::endl;
+#endif
+    }
     else{
         int parent = bohr[root_number].parent;
         if(parent){
             parent = bohr[bohr[root_number].parent].suffix_ref;
+#ifdef INFO
+            std::cout << "suff ref of parent is: "
+                      << bohr[parent].node_name << bohr[parent].node_id << std::endl;
+#endif
             bool is_suff_set = false;
             while(parent && !is_suff_set){
                 for(auto it: bohr[parent].next_nodes)
@@ -95,12 +121,26 @@ void set_suffix_reference(std::vector <Bohr_Node>& bohr, int root_number){
                         is_suff_set = true;
                     }
                 parent = bohr[parent].suffix_ref;
+#ifdef INFO
+                std::cout << "suff ref of prev parent is: "
+                          << bohr[parent].node_name << bohr[parent].node_id << std::endl;
+#endif
             }
 
             if(!parent && !is_suff_set)
                 for(auto it: bohr[parent].next_nodes)
                     if(bohr[it].node_name == bohr[root_number].node_name)
                         bohr[root_number].suffix_ref = bohr[it].node_id;
+#ifdef INFO
+            std::cout << "total suff ref of element " << bohr[root_number].node_name << bohr[root_number].node_id
+                      << " is " << bohr[root_number].suffix_ref << std::endl;
+#endif
+        }
+        else{
+#ifdef INFO
+            std::cout << "parent of " << bohr[root_number].node_name << bohr[root_number].node_id <<
+                         " is a root => suff ref goes to root" << std::endl;
+#endif
         }
     }
     for(auto it: bohr[root_number].next_nodes)
@@ -128,11 +168,18 @@ void find_solution(const std::vector <Bohr_Node>& bohr, const std::string& main_
 #endif
             continue;
         }
+
+        // пройти по всем суфф ссылкам до корня
         int temp_state = state;
         while(temp_state){
-            if(bohr[bohr[temp_state].suffix_ref].is_end && is_jump)
+            if(bohr[bohr[temp_state].suffix_ref].is_end && is_jump){
                 solutions.push_back(std::make_pair(i - bohr[bohr[temp_state].suffix_ref].pattern_length + 2,
-                                                                 bohr[bohr[temp_state].suffix_ref].pattern_num + 1));
+                                                       bohr[bohr[temp_state].suffix_ref].pattern_num + 1));
+#ifdef INFO
+                std::cout << "find solution: " << i - bohr[bohr[temp_state].suffix_ref].pattern_length + 2 << " " <<
+                                                      bohr[bohr[temp_state].suffix_ref].pattern_num + 1;
+#endif
+            }
             temp_state = bohr[bohr[temp_state].suffix_ref].node_id;
         }
 
@@ -154,8 +201,12 @@ void find_solution(const std::vector <Bohr_Node>& bohr, const std::string& main_
 #ifdef INFO
         std::cout << bohr[state].node_id << std::endl;
 #endif
-        if(bohr[state].is_end)
+        if(bohr[state].is_end){
             solutions.push_back(std::make_pair(i - bohr[state].pattern_length + 2, bohr[state].pattern_num + 1));
+#ifdef INFO
+            std::cout << i - bohr[state].pattern_length + 2 << " " << bohr[state].pattern_num + 1 << std::endl;
+#endif
+        }
     }
 }
 
