@@ -6,7 +6,7 @@
 int delete_word(char** text, int number_of_sentence , char* word){
     for(int i = 0; i < number_of_sentence; i++){
         char* prt = strstr(text[i], word);
-        if(prt != NULL) {
+        while (prt) {
             if(prt == text[i]) {
                 if(*(prt+strlen(word)) == ' ' || *(prt+strlen(word)) == ',' || *(prt+strlen(word)) == '.') {
                     for (int q = 0; q < strlen(text[i]) - strlen(word); q++){
@@ -24,7 +24,9 @@ int delete_word(char** text, int number_of_sentence , char* word){
                     text[i][strlen(text[i]) - strlen(word)] = '\0';
                 }
             }
+            prt = strstr(text[i], word);
         }
+
         int flag = 1;
         for(int j = 0; j < text[i][j]; ++j) {
             if(text[i][j] != ' ' && text[i][j] != '.' && text[i][j] != ',') {
