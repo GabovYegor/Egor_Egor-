@@ -1,0 +1,2 @@
+/usr/bin/ar qc libaverage_of_numbers_sort.a  CMakeFiles/average_of_numbers_sort.dir/average_of_numbers_sort.c.o
+/usr/bin/ranlib libaverage_of_numbers_sort.a

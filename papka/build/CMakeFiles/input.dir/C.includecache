@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/egor/Documents/default/papka/input.c
+stdio.h
+-
+malloc.h
+-
+stdlib.h
+-
+locale.h
+-
+string.h
+-
+assert.h
+-
+ctype.h
+-
+input.h
+/home/egor/Documents/default/papka/input.h
+
+/home/egor/Documents/default/papka/input.h
+stdio.h
+-
+malloc.h
+-
+stdlib.h
+-
+locale.h
+-
+string.h
+-
+assert.h
+-
+ctype.h
+-
+

@@ -1,0 +1,1 @@
+/usr/bin/cc   -rdynamic CMakeFiles/main.dir/main.c.o  -o main libdelete_word.a libaverage_of_numbers_sort.a libdelete_without_lower.a libprint_title.a libinput.a 

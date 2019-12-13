@@ -1,0 +1,8 @@
+project(hello_world)
+add_library(delete_word STATIC delete_word.c delete_word.h)
+add_library(average_of_numbers_sort STATIC average_of_numbers_sort.c average_of_numbers_sort.h)
+add_library(delete_without_lower STATIC delete_without_lower.c delete_without_lower.h)
+add_library(input STATIC input.c input.h)
+add_library(print_title STATIC print_title.c print_title.h)
+add_executable(main main.c)
+target_link_libraries(main delete_word average_of_numbers_sort delete_without_lower print_title input)	

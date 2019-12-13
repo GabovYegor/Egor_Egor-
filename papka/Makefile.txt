@@ -1,0 +1,27 @@
+
+all: main
+
+main: main.o average_of_numbers_sort.o delete_without_lower.o delete_word.o input.o print_title.o  average_of_numbers_sort.h delete_without_lower.h delete_word.h input.h print_title.h
+	gcc main.o average_of_numbers_sort.o delete_without_lower.o delete_word.o input.o print_title.o -o main
+
+main.o: main.c average_of_numbers_sort.h delete_without_lower.h delete_word.h input.h print_title.h
+	gcc -c main.c
+
+average_of_numbers.o: average_of_numbers_sort.c
+	gcc -c average_of_numbers_sort.c
+
+delete_without_lower.o: delete_without_lower.c
+	gcc -c delete_without_lower.c
+
+delete_word.o: delete_word.c
+	gcc -c delete_word.c
+
+input.o: input.c
+	gcc -c input.c
+
+print_title.o: print_title.c
+	gcc -c print_title.c
+
+clean:
+	rm -rf *.o main
+

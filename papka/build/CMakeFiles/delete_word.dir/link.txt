@@ -1,0 +1,2 @@
+/usr/bin/ar qc libdelete_word.a  CMakeFiles/delete_word.dir/delete_word.c.o
+/usr/bin/ranlib libdelete_word.a

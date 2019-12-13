@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/egor/Documents/default/papka/delete_word.c
+stdio.h
+-
+string.h
+-
+stdlib.h
+-
+delete_word.h
+/home/egor/Documents/default/papka/delete_word.h
+
+/home/egor/Documents/default/papka/delete_word.h
+stdio.h
+-
+string.h
+-
+stdlib.h
+-
+

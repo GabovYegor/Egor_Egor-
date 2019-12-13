@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/egor/Documents/default/papka/average_of_numbers_sort.c
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+ctype.h
+-
+average_of_numbers_sort.h
+/home/egor/Documents/default/papka/average_of_numbers_sort.h
+
+/home/egor/Documents/default/papka/average_of_numbers_sort.h
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+

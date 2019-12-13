@@ -1,0 +1,2 @@
+/usr/bin/ar qc libdelete_without_lower.a  CMakeFiles/delete_without_lower.dir/delete_without_lower.c.o
+/usr/bin/ranlib libdelete_without_lower.a

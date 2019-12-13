@@ -1,0 +1,8 @@
+/home/egor/Documents/default/papka/build/CMakeFiles/edit_cache.dir
+/home/egor/Documents/default/papka/build/CMakeFiles/average_of_numbers_sort.dir
+/home/egor/Documents/default/papka/build/CMakeFiles/print_title.dir
+/home/egor/Documents/default/papka/build/CMakeFiles/main.dir
+/home/egor/Documents/default/papka/build/CMakeFiles/delete_word.dir
+/home/egor/Documents/default/papka/build/CMakeFiles/rebuild_cache.dir
+/home/egor/Documents/default/papka/build/CMakeFiles/delete_without_lower.dir
+/home/egor/Documents/default/papka/build/CMakeFiles/input.dir

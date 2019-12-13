@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/egor/Documents/default/papka/delete_without_lower.c
+stdio.h
+-
+ctype.h
+-
+stdlib.h
+-
+string.h
+-
+delete_without_lower.h
+/home/egor/Documents/default/papka/delete_without_lower.h
+
+/home/egor/Documents/default/papka/delete_without_lower.h
+stdio.h
+-
+ctype.h
+-
+stdlib.h
+-
+

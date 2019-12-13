@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/egor/Documents/default/papka/print_title.c
+stdio.h
+-
+stdlib.h
+-
+ctype.h
+-
+string.h
+-
+print_title.h
+/home/egor/Documents/default/papka/print_title.h
+
+/home/egor/Documents/default/papka/print_title.h
+stdio.h
+-
+stdlib.h
+-
+ctype.h
+-
+string.h
+-
+
