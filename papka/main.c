@@ -56,9 +56,9 @@ int main(void) {
                 printf("%s",text[i]);
             break;
         case 4:
-            delete_without_lower(text, number_of_sentence);
+            delete_without_lower(text, &number_of_sentence);
             for (int i = 0; i < number_of_sentence; i++)
-                printf("%s",text[i]);
+                printf("%s\n",text[i]);
             break;
         case 5:
             free(text); // memory leak

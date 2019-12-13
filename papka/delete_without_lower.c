@@ -4,25 +4,20 @@
 #include <string.h>
 #include "delete_without_lower.h"
 
-char** delete_without_lower(char** text,int n){
-	for (int i = 0; i < n; i++){
-		char* str;
-		int q = n;
-		str = malloc((strlen(text[i])/*+1*/) * sizeof(char));
-		strcpy(str, text[i]);
-		for(int j = 0; j <strlen(str); j++) {
-			str[j] = toupper(str[j]);
-		}		
-		if (strcmp(str,text[i]) == 0){
-			free(text[i]);
-			q--;
-			if (i != q-1){
-				for (int k = i; k<q-2; k++){
-						text[k] = text[k+1];
-				}
-				free(text[q-1]);
-			}			
-		}
-		free(str);
-	}	
+char** delete_without_lower(char** text, int* number_of_sentence) {
+    for(int i = 0; i < *number_of_sentence; ++i) {
+        int flag = 1;
+        for (int j = 0; text[i][j]; ++j) {
+            if ((text[i][j] < 'A' || text[i][j] > 'Z')
+                 && text[i][j] != ' ' && text[i][j] != '.' && text[i][j] != ',') {
+                flag = 0;
+            }
+        }
+        if(flag) {
+            for(int k = i--; text[k+1]; ++k) {
+                text[k] = text[k+1];
+            }
+            free(text[--*number_of_sentence]);
+        }
+    }
 }

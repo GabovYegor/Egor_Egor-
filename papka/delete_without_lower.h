@@ -5,5 +5,5 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-char** delete_without_lower(char** text,int n);
+char** delete_without_lower(char** text, int* number_of_sentence);
 #endif
